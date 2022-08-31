@@ -73,7 +73,6 @@ class ConvertJson(ReadJson):
         of full atom style"""
         coords_df: pd.DataFrame = self.get_atoms_coords()  # xyz of atoms
         element_df: pd.DataFrame = self.get_element()  # Atomic numbers
-        print(element_df)
         self.mk_lmp_df(coords_df, element_df)
 
     def mk_lmp_df(self,
@@ -84,9 +83,28 @@ class ConvertJson(ReadJson):
         mol: list[int]  # index for the moelcule, HERE 1!
         nxyz: list[int]  # nx, ny, nz flags of the full style
         charges: list[float]  # Charges for each atom
+        cmt: list[str]  # Comment for the name of the atoms
         mol = [int(1) for _ in coords_df.index]
         nxyz = [int(0) for _ in coords_df.index]
+        cmt = ['#' for _ in coords_df.index]
         charges = [float(0) for _ in coords_df.index]
+        columns = ['atom_id', 'mol', 'typ', 'charge', 'x', 'y', 'z',
+                   'nx', 'ny', 'nz', 'cmt', 'name']
+        atoms_df: pd.DataFrame  # LAMMPS dataframe
+        atoms_df = pd.DataFrame(columns=columns)
+        atoms_df['atom_id'] = coords_df['aid']
+        atoms_df['mol'] = mol
+        atoms_df['typ'] = element_df['typ']
+        atoms_df['charge'] = charges
+        atoms_df['x'] = coords_df['x']
+        atoms_df['y'] = coords_df['y']
+        atoms_df['z'] = coords_df['z']
+        atoms_df['nx'] = nxyz
+        atoms_df['ny'] = nxyz
+        atoms_df['nz'] = nxyz
+        atoms_df['cmt'] = cmt
+        atoms_df['name'] = element_df['element']
+        print(atoms_df)
 
     def get_element(self) -> pd.DataFrame:
         """return atoms chemical elemnt numbers"""
