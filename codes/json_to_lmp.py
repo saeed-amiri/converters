@@ -73,6 +73,7 @@ class ConvertJson(ReadJson):
         of full atom style"""
         coords_df: pd.DataFrame = self.get_atoms_coords()  # xyz of atoms
         element_df: pd.DataFrame = self.get_element()  # Atomic numbers
+        print(element_df)
         self.mk_lmp_df(coords_df, element_df)
 
     def mk_lmp_df(self,
@@ -95,9 +96,19 @@ class ConvertJson(ReadJson):
         a_element: list[int]  # atomic number of each elemcnt
         aid = atoms['aid']
         a_element = atoms['element']
-        element_df = pd.DataFrame(list(zip(aid, a_element)),
-                                  columns=['aid', 'element'])
+        type_list: list[int] = self.mk_types(a_element)
+        element_df = pd.DataFrame(list(zip(aid, type_list, a_element)),
+                                  columns=['aid', 'typ', 'element'])
         return element_df
+
+    def mk_types(self,
+                 a_element: list[int]  # Atomic number of atoms
+                 ) -> list[int]:
+        """return a list for atomic types"""
+        set_element: set[int] = set(a_element)
+        type_dict: dict[int, int] = {k: i+1 for i, k in enumerate(set_element)}
+        type_list: list[int] = [type_dict[k] for k in a_element]
+        return type_list
 
     def get_atoms_coords(self) -> pd.DataFrame:
         """get the id of all the atoms"""
