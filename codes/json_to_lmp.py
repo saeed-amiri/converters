@@ -1,3 +1,4 @@
+from pprint import pprint
 import sys
 import json
 import typing
@@ -63,7 +64,7 @@ class ConvertJson(ReadJson):
                  fname: str  # Name of the input files
                  ) -> None:
         super().__init__(fname)
-        self.compounds: dict[str, list[typing.Any]]
+        self.compounds: dict[str, list[typing.Any]]  # Needed values
         self.compounds = self.param['PC_Compounds'][0]
         self.get_atoms()
 
@@ -71,6 +72,32 @@ class ConvertJson(ReadJson):
         """get all the atoms coords and return a lammps version
         of full atom style"""
         coords_df: pd.DataFrame = self.get_atoms_coords()  # xyz of atoms
+        element_df: pd.DataFrame = self.get_element()  # Atomic numbers
+        self.mk_lmp_df(coords_df, element_df)
+
+    def mk_lmp_df(self,
+                  coords_df: pd.DataFrame,  # xyz of atoms
+                  element_df: pd.DataFrame  # Atomic numbers
+                  ) -> pd.DataFrame:
+        """return atoms coordinates in LAMMPS style"""
+        mol: list[int]  # index for the moelcule, HERE 1!
+        nxyz: list[int]  # nx, ny, nz flags of the full style
+        charges: list[float]  # Charges for each atom
+        mol = [int(1) for _ in coords_df.index]
+        nxyz = [int(0) for _ in coords_df.index]
+        charges = [float(0) for _ in coords_df.index]
+
+    def get_element(self) -> pd.DataFrame:
+        """return atoms chemical elemnt numbers"""
+        atoms: dict[str, list[typing.Any]]  # contain the elemnt information
+        atoms = self.compounds['atoms']
+        aid: list[int]  # id of all the atoms
+        a_element: list[int]  # atomic number of each elemcnt
+        aid = atoms['aid']
+        a_element = atoms['element']
+        element_df = pd.DataFrame(list(zip(aid, a_element)),
+                                  columns=['aid', 'element'])
+        return element_df
 
     def get_atoms_coords(self) -> pd.DataFrame:
         """get the id of all the atoms"""
@@ -90,5 +117,5 @@ class ConvertJson(ReadJson):
 
 
 if __name__ == '__main__':
-    fname=sys.argv[1]
+    fname = sys.argv[1]
     json = ConvertJson(fname)
