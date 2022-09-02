@@ -71,8 +71,8 @@ class ConvertJson(ReadJson,
         self.compounds = self.param['PC_Compounds'][0]
         self.atom_info: pd.DataFrame = self.get_atom_info()
         self.get_atoms()
-        # self.get_bonds()
-        # self.mk_masses()
+        self.get_bonds()
+        self.Masses_df: pd.DataFrame = self.mk_masses()  # Masses info
 
     def get_atoms(self) -> None:
         """get all the atoms coords and return a lammps version
@@ -88,7 +88,16 @@ class ConvertJson(ReadJson,
     def mk_masses(self) -> None:
         """make masses dataframe for the datafile"""
         columns: list[str] = ['typ', 'mass', 'cmt', 'name']
-        print(self.peridic_table)
+        df = self.atom_info.copy()
+        df = df.loc[df.groupby(by=['element'])['mass'].idxmin(), :]
+        df.reset_index(inplace=True)
+        df.drop(['aid', 'index'], axis=1, inplace=True)
+        masses_df = pd.DataFrame(columns=columns)
+        masses_df['typ'] = df['type']
+        masses_df['mass'] = df['mass']
+        masses_df['cmt'] = ['#' for _ in df.index]
+        masses_df['name'] = df['name']
+        return masses_df
 
     def get_bonds_df(self) -> pd.DataFrame:
         """make bonds dataframe"""
@@ -108,12 +117,12 @@ class ConvertJson(ReadJson,
                        ) -> list[str]:
         """return a list of atoms atomics number since there is no
         name yet"""
-        ai_number: list[int]  # Atomic number of 1st atom
-        aj_number: list[int]  # Atomic number of 2nd atom
         ai_name: list[str]  # Name of the atoms
         aj_name: list[str]  # Name of the atoms
-        ai_number = [self.Atoms_df['typ'][item-1] for item in ai]
-        aj_number = [self.Atoms_df['typ'][item-1] for item in aj]
+        ai_name = [self.atom_info.loc[self.atom_info['aid']==item]
+                   ['name'][item-1] for item in ai]
+        aj_name = [self.atom_info.loc[self.atom_info['aid']==item]
+                   ['name'][item-1] for item in aj]
         name: list[str] = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
         return name
 
@@ -136,7 +145,7 @@ class ConvertJson(ReadJson,
         atoms_df = pd.DataFrame(columns=columns)
         atoms_df['atom_id'] = coords_df['aid']
         atoms_df['mol'] = mol
-        atoms_df['typ'] = element_df['typ']
+        atoms_df['typ'] = self.atom_info['type']
         atoms_df['charge'] = charges
         atoms_df['x'] = coords_df['x']
         atoms_df['y'] = coords_df['y']
@@ -192,7 +201,7 @@ class ConvertJson(ReadJson,
         columns: list[str]  # Name of the columns
         name: list[str] = []  # Name of each element
         mass: list[float] = []  # Mass of each element
-        columns = ['aid', 'element', 'name', 'mass']
+        columns = ['aid', 'type', 'element', 'name', 'mass']
         df = pd.DataFrame(columns=columns)
         df['aid'] = self.compounds['atoms']['aid']
         df['element'] = self.compounds['atoms']['element']
@@ -204,8 +213,11 @@ class ConvertJson(ReadJson,
             i_mass = iloc['atomic_mass'][element]
             name.append(i_name)
             mass.append(i_mass)
+        atoms = self.compounds['atoms']['element']
+        type_list: list[int] = self.mk_types(atoms)
         df['name'] = name
         df['mass'] = mass
+        df['type'] = type_list
         return df
 
 
