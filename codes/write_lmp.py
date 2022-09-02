@@ -93,7 +93,6 @@ class WriteLmp(GetData):
 
     def write_lmp(self) -> None:
         """call all the function"""
-        print("H")
         with open(self.fname, 'w') as f:
             self.write_header(f)
             self.write_body(f)

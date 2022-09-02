@@ -59,8 +59,9 @@ class ReadJson:
         del data
 
 
-class ConvertJson(ReadJson,
-                  pridf.PeriodicTable):
+class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
+                  pridf.PeriodicTable  # Periodic table for all elements
+                  ):
     """read the json files"""
     def __init__(self,
                  fname: str  # Name of the input files
@@ -85,7 +86,7 @@ class ConvertJson(ReadJson,
         """get all the bonds types and atoms ids"""
         self.Bonds_df: pd.DataFrame = self.get_bonds_df()
 
-    def mk_masses(self) -> None:
+    def mk_masses(self) -> pd.DataFrame:
         """make masses dataframe for the datafile"""
         columns: list[str] = ['typ', 'mass', 'cmt', 'name']
         df = self.atom_info.copy()
@@ -119,9 +120,9 @@ class ConvertJson(ReadJson,
         name yet"""
         ai_name: list[str]  # Name of the atoms
         aj_name: list[str]  # Name of the atoms
-        ai_name = [self.atom_info.loc[self.atom_info['aid']==item]
+        ai_name = [self.atom_info.loc[self.atom_info['aid'] == item]
                    ['name'][item-1] for item in ai]
-        aj_name = [self.atom_info.loc[self.atom_info['aid']==item]
+        aj_name = [self.atom_info.loc[self.atom_info['aid'] == item]
                    ['name'][item-1] for item in aj]
         name: list[str] = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
         return name
@@ -201,13 +202,14 @@ class ConvertJson(ReadJson,
         columns: list[str]  # Name of the columns
         name: list[str] = []  # Name of each element
         mass: list[float] = []  # Mass of each element
-        columns = ['aid', 'type', 'element', 'name', 'mass']
+        atoms: list[int]  # Index of atoms (atomic number)
+        columns = ['aid', 'type', 'element', 'name', 'mass']  # Columns name
         df = pd.DataFrame(columns=columns)
         df['aid'] = self.compounds['atoms']['aid']
         df['element'] = self.compounds['atoms']['element']
         for i, aid in enumerate(df['aid']):
             element = df.iloc[i]['element']
-            iloc = self.peridic_table.loc[self.peridic_table['number']==
+            iloc = self.peridic_table.loc[self.peridic_table['number'] ==
                                           element]
             i_name = iloc['name'][element]
             i_mass = iloc['atomic_mass'][element]
