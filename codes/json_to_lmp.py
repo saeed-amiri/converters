@@ -67,18 +67,48 @@ class ConvertJson(ReadJson):
         self.compounds: dict[str, list[typing.Any]]  # Needed values
         self.compounds = self.param['PC_Compounds'][0]
         self.get_atoms()
+        self.get_bonds()
 
     def get_atoms(self) -> None:
         """get all the atoms coords and return a lammps version
         of full atom style"""
         coords_df: pd.DataFrame = self.get_atoms_coords()  # xyz of atoms
         element_df: pd.DataFrame = self.get_element()  # Atomic numbers
-        self.mk_lmp_df(coords_df, element_df)
+        self.atoms_df: pd.DataFrame = self.mk_atom_df(coords_df, element_df)
 
-    def mk_lmp_df(self,
-                  coords_df: pd.DataFrame,  # xyz of atoms
-                  element_df: pd.DataFrame  # Atomic numbers
-                  ) -> pd.DataFrame:
+    def get_bonds(self) -> None:
+        """get all the bonds types and atoms ids"""
+        self.bonds_df: pd.DataFrame = self.get_bonds_df
+
+    def get_bonds_df(self) -> pd.DataFrame:
+        """make bonds dataframe"""
+        bonds: dict[str, list[int]] = self.compounds['bonds']  # Bonds ids
+        columns = ['typ', 'ai', 'aj', 'cmt', 'name']
+        bonds_df = pd.DataFrame(columns=columns)
+        bonds_df['typ'] = bonds['order']
+        bonds_df['ai'] = bonds['aid1']
+        bonds_df['aj'] = bonds['aid2']
+        bonds_df['cmt'] = ['#' for _ in bonds_df.index]
+        bonds_df['name'] = self.get_bonds_name(bonds['aid1'], bonds['aid2'])
+        return bonds_df
+
+    def get_bonds_name(self,
+                       ai: list[int],  # Id of the 1st atoms in bonds
+                       aj: list[int],  # Id of the 2nd atoms in bonds
+                       ) -> list[str]:
+        """return a list of atoms atomics number since there is no
+        name yet"""
+        ai_name: list[int]  # Atomic number of 1st atom
+        aj_name: list[int]  # Atomic number of 2nd atom
+        ai_name = [self.atoms_df['typ'][item-1] for item in ai]
+        aj_name = [self.atoms_df['typ'][item-1] for item in aj]
+        name: list[str] = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
+        return name
+
+    def mk_atom_df(self,
+                   coords_df: pd.DataFrame,  # xyz of atoms
+                   element_df: pd.DataFrame  # Atomic numbers
+                   ) -> pd.DataFrame:
         """return atoms coordinates in LAMMPS style"""
         mol: list[int]  # index for the moelcule, HERE 1!
         nxyz: list[int]  # nx, ny, nz flags of the full style
@@ -104,7 +134,7 @@ class ConvertJson(ReadJson):
         atoms_df['nz'] = nxyz
         atoms_df['cmt'] = cmt
         atoms_df['name'] = element_df['element']
-        print(atoms_df)
+        return atoms_df
 
     def get_element(self) -> pd.DataFrame:
         """return atoms chemical elemnt numbers"""
