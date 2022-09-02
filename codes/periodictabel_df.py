@@ -26,6 +26,8 @@ class PeriodicTable:
                    ) -> pd.DataFrame:
         """convert dictionary to dataframe"""
         df = pd.DataFrame.from_dict(data)
+        df.astype({'number': int})
+        df.index += 1
         return df
 
     def read_json(self,
@@ -34,7 +36,8 @@ class PeriodicTable:
         """read json file as a dictionary"""
         with open(fname, 'r') as f:
             data = json.load(f)
-        return data['elements'][0]
+        data_dict = data['elements']
+        return data_dict
 
 
 if __name__ == '__main__':
