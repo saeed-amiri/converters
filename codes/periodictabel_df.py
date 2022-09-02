@@ -19,12 +19,14 @@ class PeriodicTable:
         fname: str  # Name of the file, IT IS STATIC!
         fname = '/scratch/saeed/MyScripts/converters/codes/periodic_table.json'
         data: dict[str, typing.Any] = self.read_json(fname)
-        self.dict_to_df(data)
+        self.peridic_table = self.dict_to_df(data)
 
     def dict_to_df(self,
                    data: dict[str, typing.Any]
                    ) -> pd.DataFrame:
         """convert dictionary to dataframe"""
+        df = pd.DataFrame.from_dict(data)
+        return df
 
     def read_json(self,
                   fname: str  # Name of the input file
