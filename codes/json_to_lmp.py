@@ -4,6 +4,7 @@ import json
 import typing
 import pandas as pd
 from colors_text import TextColor as bcolors
+import periodictabel_df as pridf
 
 
 class Doc:
@@ -58,27 +59,36 @@ class ReadJson:
         del data
 
 
-class ConvertJson(ReadJson):
+class ConvertJson(ReadJson,
+                  pridf.PeriodicTable):
     """read the json files"""
     def __init__(self,
                  fname: str  # Name of the input files
                  ) -> None:
-        super().__init__(fname)
+        ReadJson.__init__(self, fname)
+        pridf.PeriodicTable.__init__(self)
         self.compounds: dict[str, list[typing.Any]]  # Needed values
         self.compounds = self.param['PC_Compounds'][0]
+        self.atom_info: pd.DataFrame = self.get_atom_info()
         self.get_atoms()
-        self.get_bonds()
+        # self.get_bonds()
+        # self.mk_masses()
 
     def get_atoms(self) -> None:
         """get all the atoms coords and return a lammps version
         of full atom style"""
         coords_df: pd.DataFrame = self.get_atoms_coords()  # xyz of atoms
         element_df: pd.DataFrame = self.get_element()  # Atomic numbers
-        self.atoms_df: pd.DataFrame = self.mk_atom_df(coords_df, element_df)
+        self.Atoms_df: pd.DataFrame = self.mk_atom_df(coords_df, element_df)
 
     def get_bonds(self) -> None:
         """get all the bonds types and atoms ids"""
-        self.bonds_df: pd.DataFrame = self.get_bonds_df
+        self.Bonds_df: pd.DataFrame = self.get_bonds_df()
+
+    def mk_masses(self) -> None:
+        """make masses dataframe for the datafile"""
+        columns: list[str] = ['typ', 'mass', 'cmt', 'name']
+        print(self.peridic_table)
 
     def get_bonds_df(self) -> pd.DataFrame:
         """make bonds dataframe"""
@@ -98,10 +108,12 @@ class ConvertJson(ReadJson):
                        ) -> list[str]:
         """return a list of atoms atomics number since there is no
         name yet"""
-        ai_name: list[int]  # Atomic number of 1st atom
-        aj_name: list[int]  # Atomic number of 2nd atom
-        ai_name = [self.atoms_df['typ'][item-1] for item in ai]
-        aj_name = [self.atoms_df['typ'][item-1] for item in aj]
+        ai_number: list[int]  # Atomic number of 1st atom
+        aj_number: list[int]  # Atomic number of 2nd atom
+        ai_name: list[str]  # Name of the atoms
+        aj_name: list[str]  # Name of the atoms
+        ai_number = [self.Atoms_df['typ'][item-1] for item in ai]
+        aj_number = [self.Atoms_df['typ'][item-1] for item in aj]
         name: list[str] = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
         return name
 
@@ -133,7 +145,7 @@ class ConvertJson(ReadJson):
         atoms_df['ny'] = nxyz
         atoms_df['nz'] = nxyz
         atoms_df['cmt'] = cmt
-        atoms_df['name'] = element_df['element']
+        atoms_df['name'] = self.atom_info['name']
         return atoms_df
 
     def get_element(self) -> pd.DataFrame:
@@ -173,6 +185,28 @@ class ConvertJson(ReadJson):
         coords_df = pd.DataFrame(list(zip(aid, x, y, z)),
                                  columns=['aid', 'x', 'y', 'z'])
         return coords_df  # xyz of atoms
+
+    def get_atom_info(self) -> pd.DataFrame:
+        """return the name, atomic nnumber and mass of each atom"""
+        df: pd.DataFrame  # A dataframe for index and element id
+        columns: list[str]  # Name of the columns
+        name: list[str] = []  # Name of each element
+        mass: list[float] = []  # Mass of each element
+        columns = ['aid', 'element', 'name', 'mass']
+        df = pd.DataFrame(columns=columns)
+        df['aid'] = self.compounds['atoms']['aid']
+        df['element'] = self.compounds['atoms']['element']
+        for i, aid in enumerate(df['aid']):
+            element = df.iloc[i]['element']
+            iloc = self.peridic_table.loc[self.peridic_table['number']==
+                                          element]
+            i_name = iloc['name'][element]
+            i_mass = iloc['atomic_mass'][element]
+            name.append(i_name)
+            mass.append(i_mass)
+        df['name'] = name
+        df['mass'] = mass
+        return df
 
 
 if __name__ == '__main__':
