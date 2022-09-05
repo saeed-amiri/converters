@@ -105,12 +105,33 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
         bonds: dict[str, list[int]] = self.compounds['bonds']  # Bonds ids
         columns = ['typ', 'ai', 'aj', 'cmt', 'name']
         bonds_df = pd.DataFrame(columns=columns)
-        bonds_df['typ'] = bonds['order']
+        bonds_df['typ'] = self.get_bonds_type(bonds['aid1'], bonds['aid2'])
         bonds_df['ai'] = bonds['aid1']
         bonds_df['aj'] = bonds['aid2']
         bonds_df['cmt'] = ['#' for _ in bonds_df.index]
         bonds_df['name'] = self.get_bonds_name(bonds['aid1'], bonds['aid2'])
+        bonds_df.index += 1
         return bonds_df
+
+    def get_bonds_type(self,
+                       ai: list[int],  # Id of the 1st atoms in bonds
+                       aj: list[int],  # Id of the 2nd atoms in bonds
+                       ) -> list[str]:
+        """get bonds type, since there is no infos about it in data
+        file"""
+        ai_type: list[int]  # type of 1st atoms in bonds
+        aj_type: list[int]  # type of 2nd atoms in bonds
+        bond_couple: list[tuple(int, int)]  # Bond couples
+        bond_dict: dict[int, tuple(int, int)]  # type of each couple
+        bonds_type: list(int)  # type of each bond
+        ai_type = [self.atom_info.loc[self.atom_info['aid'] == item]
+                   ['type'][item-1] for item in ai]
+        aj_type = [self.atom_info.loc[self.atom_info['aid'] == item]
+                   ['type'][item-1] for item in aj]
+        bond_couple = [(i, j) for i, j in zip(ai_type, aj_type)]
+        bond_dict = {t: i+1 for i, t in enumerate(set(bond_couple))}
+        bonds_type = [bond_dict[item] for item in bond_couple]
+        return bonds_type
 
     def get_bonds_name(self,
                        ai: list[int],  # Id of the 1st atoms in bonds
