@@ -67,12 +67,27 @@ class Angle:
                  bonds_df: pd.DataFrame,  # Bonds DF from ConvertJson
                  atoms_info: pd.DataFrame  # All the atoms information
                  ) -> None:
+        """make angles_df for LAMMPS data file"""
+        self.angles_df: pd.DataFrame = self.mk_angels_df(bonds_df, atoms_info)
+
+    def mk_angels_df(self,
+                     bonds_df: pd.DataFrame,  # Bonds DF from ConvertJson
+                     atoms_info: pd.DataFrame  # All the atoms information
+                     ) -> pd.DataFrame:
+        """the dataframe for LAMMPS to write"""
+        columns: list[str] = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
         angle_df: pd.DataFrame = self.get_angle(bonds_df)  # df of just angles
         type_df: pd.DataFrame = self.get_types(angle_df, atoms_info)  # types
-        df = pd.concat([angle_df, type_df], axis=1)
         types: list[int] = self.set_angle_type(type_df)  # Type of each angle
-        df['type'] = types
-        print(df)
+        angle_name: list[str] = self.set_angle_name(angle_df, atoms_info)
+        df = pd.DataFrame(columns=columns)
+        df['ai'] = angle_df['ai']
+        df['aj'] = angle_df['aj']
+        df['ak'] = angle_df['ak']
+        df['typ'] = types
+        df['cmt'] = ['#' for _ in df.index]
+        df['name'] = angle_name
+        return df
 
     def get_angle(self,
                   bonds_df: pd.DataFrame  # Bonds DF from ConvertJson
@@ -118,6 +133,23 @@ class Angle:
         angle_type: list[int] = []  # Type of each angle
         angle_type = [type_dict[item] for item in types]
         return angle_type
+
+    def set_angle_name(self,
+                       angles: pd.DataFrame,  # DataFrame of the angles
+                       atoms_info: pd.DataFrame  # All atoms informations
+                       ) -> list[str]:
+        """make angels name based on the atoms"""
+        angle_name: list[str] = []  # Name for each angle
+        for _, row in angles.iterrows():
+            ai: int = row['ai']  # index of the atom
+            aj: int = row['aj']  # index of the atom
+            ak: int = row['ak']  # index of the atom
+            i_name: int = atoms_info.loc[atoms_info['aid'] == ai]['name'][ai-1]
+            j_name: int = atoms_info.loc[atoms_info['aid'] == aj]['name'][aj-1]
+            k_name: int = atoms_info.loc[atoms_info['aid'] == ak]['name'][ak-1]
+            a_name = f'{i_name}_{j_name}_{k_name}'
+            angle_name.append(a_name)
+        return angle_name
 
     def get_types(self,
                   angels: pd.DataFrame,  # Angles
