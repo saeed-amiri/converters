@@ -87,6 +87,7 @@ class Angle:
         df['typ'] = types
         df['cmt'] = ['#' for _ in df.index]
         df['name'] = angle_name
+        df.index += 1
         return df
 
     def get_angle(self,
@@ -367,6 +368,7 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
     def get_angles(self) -> None:
         """call class Angles to find the angles between particles"""
         angle = Angle(self.Bonds_df, self.atom_info)
+        self.Angles_df = angle.angles_df
 
 
 if __name__ == '__main__':
