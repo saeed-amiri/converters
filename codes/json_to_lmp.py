@@ -59,6 +59,19 @@ class ReadJson:
         del data
 
 
+class Angle:
+    """to guess angles for the input file"""
+    def __init__(self,
+                 bonds_df: pd.DataFrame  # Bonds DF from ConvertJson
+                 ) -> None:
+        self.guess_angle(bonds_df)
+
+    def guess_angle(self,
+                    bonds_df: pd.DataFrame  # Bonds DF from ConvertJson
+                    ) -> None:
+        """guess angles between atoms based on the bonds"""
+
+
 class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
                   pridf.PeriodicTable  # Periodic table for all elements
                   ):
@@ -73,6 +86,7 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
         self.atom_info: pd.DataFrame = self.get_atom_info()
         self.get_atoms()
         self.get_bonds()
+        self.get_angles()
         self.Masses_df: pd.DataFrame = self.mk_masses()  # Masses info
 
     def get_atoms(self) -> None:
@@ -242,6 +256,10 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
         df['mass'] = mass
         df['type'] = type_list
         return df
+
+    def get_angles(self) -> None:
+        """call class Angles to find the angles between particles"""
+        angle = Angle(self.Bonds_df)
 
 
 if __name__ == '__main__':
