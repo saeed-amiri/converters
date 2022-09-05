@@ -6,7 +6,7 @@ import typing
 import pandas as pd
 from itertools import combinations
 from colors_text import TextColor as bcolors
-import periodictabel_df as pridf
+import periodictabel_df as periodf
 
 
 class Doc:
@@ -64,13 +64,17 @@ class ReadJson:
 class Angle:
     """to guess angles for the input file"""
     def __init__(self,
-                 bonds_df: pd.DataFrame  # Bonds DF from ConvertJson
+                 bonds_df: pd.DataFrame,  # Bonds DF from ConvertJson
+                 atoms_info: pd.DataFrame  # All the atoms information
                  ) -> None:
-        self.guess_angle(bonds_df)
+        angle_df: pd.DataFrame = self.get_angle(bonds_df)  # df of just angles
+        type_df: pd.DataFrame = self.get_types(angle_df, atoms_info)  # types
+        df = pd.concat([angle_df, type_df], axis=1)
+        print(df)
 
-    def guess_angle(self,
-                    bonds_df: pd.DataFrame  # Bonds DF from ConvertJson
-                    ) -> None:
+    def get_angle(self,
+                  bonds_df: pd.DataFrame  # Bonds DF from ConvertJson
+                  ) -> pd.DataFrame:
         """guess angles between atoms based on the bonds"""
         ai_set: set[int]  # Unrepeted atom index
         i_df: pd.DataFrame  # For each atom bonds
@@ -85,7 +89,7 @@ class Angle:
             i_angle = pd.DataFrame(angles, columns=columns)
             angle_df_list.append(i_angle)
         angle_df = pd.concat(angle_df_list, ignore_index=True)
-        print(angle_df)
+        return angle_df
 
     def mk_angles(self,
                   ai: int,  # The center atom to make angles
@@ -99,16 +103,43 @@ class Angle:
         angles = [[aj[0], ai, aj[1]] for aj in aj_comb]
         return angles
 
+    def get_types(self,
+                  angels: pd.DataFrame,  # Angles
+                  atoms_info: pd.DataFrame  # All atoms information
+                  ) -> pd.DataFrame:
+        """retrun the type of atoms"""
+        ai_type: list[int] = []  # type of the ai atom
+        aj_type: list[int] = []  # type of the aj atom
+        ak_type: list[int] = []  # type of the ak atom
+        for _, row in angels.iterrows():
+            ai: int = row['ai']  # index of the atom
+            aj: int = row['aj']  # index of the atom
+            ak: int = row['ak']  # index of the atom
+            i_type: int = atoms_info.loc[atoms_info['aid'] == ai]['type'][ai-1]
+            j_type: int = atoms_info.loc[atoms_info['aid'] == aj]['type'][aj-1]
+            k_type: int = atoms_info.loc[atoms_info['aid'] == ak]['type'][ak-1]
+            ai_type.append(i_type)
+            aj_type.append(j_type)
+            ak_type.append(k_type)
+        columns: list[str]  # Columns of the types DataFrame
+        type_df: pd.DataFrame  # To return types
+        columns = ['ai_type', 'aj_type', 'ak_type']
+        type_df = pd.DataFrame(columns=columns)
+        type_df['ai_type'] = ai_type
+        type_df['aj_type'] = aj_type
+        type_df['ak_type'] = ak_type
+        return type_df
+
 
 class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
-                  pridf.PeriodicTable  # Periodic table for all elements
+                  periodf.PeriodicTable  # Periodic table for all elements
                   ):
     """read the json files"""
     def __init__(self,
                  fname: str  # Name of the input files
                  ) -> None:
         ReadJson.__init__(self, fname)
-        pridf.PeriodicTable.__init__(self)
+        periodf.PeriodicTable.__init__(self)
         self.compounds: dict[str, list[typing.Any]]  # Needed values
         self.compounds = self.param['PC_Compounds'][0]
         self.atom_info: pd.DataFrame = self.get_atom_info()
@@ -287,7 +318,7 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
 
     def get_angles(self) -> None:
         """call class Angles to find the angles between particles"""
-        angle = Angle(self.Bonds_df)
+        angle = Angle(self.Bonds_df, self.atom_info)
 
 
 if __name__ == '__main__':
