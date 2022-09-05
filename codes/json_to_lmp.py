@@ -3,6 +3,7 @@ import sys
 import json
 import typing
 import pandas as pd
+from itertools import combinations
 from colors_text import TextColor as bcolors
 import periodictabel_df as pridf
 
@@ -70,6 +71,25 @@ class Angle:
                     bonds_df: pd.DataFrame  # Bonds DF from ConvertJson
                     ) -> None:
         """guess angles between atoms based on the bonds"""
+        ai_set: set[int]  # Unrepeted atom index
+        i_df: pd.DataFrame  # For each atom bonds
+        ai_set = set(bonds_df['ai'])
+        for ai in ai_set:
+            i_df = bonds_df.loc[bonds_df['ai'] == ai]
+            angles = self.mk_angles(ai, i_df)
+            print(angles)
+
+    def mk_angles(self,
+                  ai: int,  # The center atom to make angles
+                  df: pd.DataFrame  # Slice of the bonds_df for each atom
+                  ) -> list[list[int]]:
+        """make a angles for each sub dataframe"""
+        aj: list[int] = df['aj']  # The other atoms in the angle
+        aj_comb: list[tuple[int, int]]  # All the combinations of the aj
+        aj_comb = [[aj1, aj2] for aj1, aj2 in combinations(aj, 2)]
+        angles: list[list[int]]  # list of angles
+        angles = [[aj[0], ai, aj[1]] for aj in aj_comb]
+        return angles
 
 
 class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
