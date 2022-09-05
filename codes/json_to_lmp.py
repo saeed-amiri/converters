@@ -1,12 +1,10 @@
-from operator import index
-from pprint import pprint
 import sys
 import json
 import typing
 import pandas as pd
 from itertools import combinations
-from colors_text import TextColor as bcolors
 import periodictabel_df as periodf
+from colors_text import TextColor as bcolors
 
 
 class Doc:
@@ -148,12 +146,12 @@ class Angle:
             i_name: int = atoms_info.loc[atoms_info['aid'] == ai]['name'][ai-1]
             j_name: int = atoms_info.loc[atoms_info['aid'] == aj]['name'][aj-1]
             k_name: int = atoms_info.loc[atoms_info['aid'] == ak]['name'][ak-1]
-            a_name = f'{i_name}_{j_name}_{k_name}'
+            a_name: str = f'{i_name}_{j_name}_{k_name}'  # Name of the angle
             angle_name.append(a_name)
         return angle_name
 
     def get_types(self,
-                  angels: pd.DataFrame,  # Angles
+                  angels: pd.DataFrame,  # Index of atoms share an angles
                   atoms_info: pd.DataFrame  # All atoms information
                   ) -> pd.DataFrame:
         """retrun the type of atoms"""
