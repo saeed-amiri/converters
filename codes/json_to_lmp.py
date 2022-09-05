@@ -70,6 +70,8 @@ class Angle:
         angle_df: pd.DataFrame = self.get_angle(bonds_df)  # df of just angles
         type_df: pd.DataFrame = self.get_types(angle_df, atoms_info)  # types
         df = pd.concat([angle_df, type_df], axis=1)
+        types: list[int] = self.set_angle_type(type_df)  # Type of each angle
+        df['type'] = types
         print(df)
 
     def get_angle(self,
@@ -102,6 +104,20 @@ class Angle:
         angles: list[list[int]]  # list of angles
         angles = [[aj[0], ai, aj[1]] for aj in aj_comb]
         return angles
+
+    def set_angle_type(self,
+                       df: pd.DataFrame  # DataFrame of the types
+                       ) -> list[int]:
+        """make a type to distenguise the angle types"""
+        types: list[tuple[int, int, int]]  # Types of atom in each set
+        types = [(i, j, k) for i, j, k in
+                 zip(df['ai_type'], df['aj_type'], df['ak_type'])]
+        types_unique = list(set(types))
+        type_dict: dict[tuple[int, int, int], int]  # Indexing the types
+        type_dict = {k: v+1 for v, k in enumerate(types_unique)}
+        angle_type: list[int] = []  # Type of each angle
+        angle_type = [type_dict[item] for item in types]
+        return angle_type
 
     def get_types(self,
                   angels: pd.DataFrame,  # Angles
