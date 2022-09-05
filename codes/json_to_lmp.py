@@ -1,3 +1,4 @@
+from operator import index
 from pprint import pprint
 import sys
 import json
@@ -73,11 +74,18 @@ class Angle:
         """guess angles between atoms based on the bonds"""
         ai_set: set[int]  # Unrepeted atom index
         i_df: pd.DataFrame  # For each atom bonds
+        i_angle: pd.DataFrame  # Angles for each atom
+        angle_df_list: list[pd.DataFrame] = []  # list of the DataFrames
+        columns: list[str] = ['ai', 'aj', 'ak']  # columns of angle DF
+        i_angle = pd.DataFrame(columns=columns)
         ai_set = set(bonds_df['ai'])
         for ai in ai_set:
             i_df = bonds_df.loc[bonds_df['ai'] == ai]
             angles = self.mk_angles(ai, i_df)
-            print(angles)
+            i_angle = pd.DataFrame(angles, columns=columns)
+            angle_df_list.append(i_angle)
+        angle_df = pd.concat(angle_df_list, ignore_index=True)
+        print(angle_df)
 
     def mk_angles(self,
                   ai: int,  # The center atom to make angles
