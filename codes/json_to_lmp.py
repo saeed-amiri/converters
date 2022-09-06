@@ -1,7 +1,9 @@
+from pprint import pprint
 import sys
 import json
 import typing
 import pandas as pd
+import numpy as np
 from itertools import combinations
 import periodictabel_df as periodf
 from colors_text import TextColor as bcolors
@@ -63,14 +65,18 @@ class Angle:
     """to guess angles for the input file"""
     def __init__(self,
                  bonds_df: pd.DataFrame,  # Bonds DF from ConvertJson
-                 atoms_info: pd.DataFrame  # All the atoms information
+                 atoms_info: pd.DataFrame,  # All the atoms information
+                 atoms_df: pd.DataFrame  # Coordinates of atoms
                  ) -> None:
         """make angles_df for LAMMPS data file"""
-        self.angles_df: pd.DataFrame = self.mk_angels_df(bonds_df, atoms_info)
+        self.angles_df: pd.DataFrame = self.mk_angels_df(bonds_df,
+                                                         atoms_info,
+                                                         atoms_df)
 
     def mk_angels_df(self,
                      bonds_df: pd.DataFrame,  # Bonds DF from ConvertJson
-                     atoms_info: pd.DataFrame  # All the atoms information
+                     atoms_info: pd.DataFrame,  # All the atoms information
+                     atoms_df: pd.DataFrame  # All the atoms coordinates
                      ) -> pd.DataFrame:
         """the dataframe for LAMMPS to write"""
         columns: list[str] = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
@@ -86,6 +92,7 @@ class Angle:
         df['cmt'] = ['#' for _ in df.index]
         df['name'] = angle_name
         df.index += 1
+        self.get_radian(angle_df, atoms_df)
         return df
 
     def get_angle(self,
@@ -177,6 +184,38 @@ class Angle:
         type_df['ak_type'] = ak_type
         return type_df
 
+    def get_radian(self,
+                   angles: pd.DataFrame,  # Index of atoms share an angles
+                   atoms: pd.DataFrame  # Atoms' coordinates
+                   ) -> list[float]:
+        """calculate the angle of each set"""
+        print(atoms)
+        ai: list[int]  # index 1st atoms in the angles
+        aj: list[int]  # index 2nd atoms in the angles
+        ak: list[int]  # index 3rd atoms in the angles
+        x_coords: list[float]  # x component of the all atoms
+        y_coords: list[float]  # y component of the all atoms
+        z_coords: list[float]  # z component of the all atoms
+        ai = angles['ai']
+        aj = angles['aj']
+        ak = angles['ak']
+        for _, row in angles.iterrows():
+            ai: int = row['ai']
+            aj: int = row['aj']
+            ak: int = row['ak']
+            ai_coords = atoms.loc[
+                atoms['atom_id'] == ai][['x', 'y', 'z']].to_numpy()
+            aj_coords = atoms.loc[
+                atoms['atom_id'] == aj][['x', 'y', 'z']].to_numpy()
+            ak_coords = atoms.loc[
+                atoms['atom_id'] == ak][['x', 'y', 'z']].to_numpy()
+
+    def calculate_radian(self,
+                         ai: np.array,  # Coords of 1st atom in the angle
+                         aj: np.array,  # Coords of 2nd atom in the angle
+                         ak: np.array,  # Coords of 3rd atom in the angle
+                         ):
+        """"""
 
 class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
                   periodf.PeriodicTable  # Periodic table for all elements
@@ -365,7 +404,7 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
 
     def get_angles(self) -> None:
         """call class Angles to find the angles between particles"""
-        angle = Angle(self.Bonds_df, self.atom_info)
+        angle = Angle(self.Bonds_df, self.atom_info, self.Atoms_df)
         self.Angles_df = angle.angles_df
 
 
