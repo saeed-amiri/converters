@@ -189,33 +189,35 @@ class Angle:
                    atoms: pd.DataFrame  # Atoms' coordinates
                    ) -> list[float]:
         """calculate the angle of each set"""
-        print(atoms)
-        ai: list[int]  # index 1st atoms in the angles
-        aj: list[int]  # index 2nd atoms in the angles
-        ak: list[int]  # index 3rd atoms in the angles
-        x_coords: list[float]  # x component of the all atoms
-        y_coords: list[float]  # y component of the all atoms
-        z_coords: list[float]  # z component of the all atoms
-        ai = angles['ai']
-        aj = angles['aj']
-        ak = angles['ak']
+        radians: list[float] = []  # Angles between atoms to return
         for _, row in angles.iterrows():
-            ai: int = row['ai']
-            aj: int = row['aj']
-            ak: int = row['ak']
-            ai_coords = atoms.loc[
-                atoms['atom_id'] == ai][['x', 'y', 'z']].to_numpy()
-            aj_coords = atoms.loc[
-                atoms['atom_id'] == aj][['x', 'y', 'z']].to_numpy()
-            ak_coords = atoms.loc[
-                atoms['atom_id'] == ak][['x', 'y', 'z']].to_numpy()
+            ai: int = row['ai']  # index 1st atoms in the angles
+            aj: int = row['aj']  # index 2nd atoms in the angles
+            ak: int = row['ak']  # index 3rd atoms in the angles
+            ai_coords = atoms.loc[  # Coord of the 1st atom
+                atoms['atom_id'] == ai][['x', 'y', 'z']].to_numpy()[0]
+            aj_coords = atoms.loc[  # Coord of the 2nd atom
+                atoms['atom_id'] == aj][['x', 'y', 'z']].to_numpy()[0]
+            ak_coords = atoms.loc[  # Coord of the 3rd atom
+                atoms['atom_id'] == ak][['x', 'y', 'z']].to_numpy()[0]
+            radians.append(
+                self.calculate_radian(ai_coords, aj_coords, ak_coords)
+                )
+        return radians
 
     def calculate_radian(self,
-                         ai: np.array,  # Coords of 1st atom in the angle
-                         aj: np.array,  # Coords of 2nd atom in the angle
-                         ak: np.array,  # Coords of 3rd atom in the angle
+                         a: np.array,  # Coords of 1st atom in the angle
+                         b: np.array,  # Coords of 2nd atom in the angle
+                         c: np.array,  # Coords of 3rd atom in the angle
                          ):
-        """"""
+        """return the angle of each set in radian"""
+        ba = a - b
+        bc = c - b
+        cosine_angle =\
+            np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.arccos(cosine_angle)
+        return angle
+
 
 class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
                   periodf.PeriodicTable  # Periodic table for all elements
@@ -239,7 +241,7 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
         of full atom style"""
         coords_df: pd.DataFrame = self.get_atoms_coords()  # xyz of atoms
         element_df: pd.DataFrame = self.get_element()  # Atomic numbers
-        self.Atoms_df: pd.DataFrame = self.mk_atom_df(coords_df, element_df)
+        self.Atoms_df: pd.DataFrame = self.mk_atom_df(coords_df)
 
     def get_bonds(self) -> None:
         """get all the bonds types and atoms ids"""
@@ -275,14 +277,14 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
     def get_bonds_type(self,
                        ai: list[int],  # Id of the 1st atoms in bonds
                        aj: list[int],  # Id of the 2nd atoms in bonds
-                       ) -> list[str]:
+                       ) -> list[int]:
         """get bonds type, since there is no infos about it in data
         file"""
         ai_type: list[int]  # type of 1st atoms in bonds
         aj_type: list[int]  # type of 2nd atoms in bonds
-        bond_couple: list[tuple(int, int)]  # Bond couples
-        bond_dict: dict[int, tuple(int, int)]  # type of each couple
-        bonds_type: list(int)  # type of each bond
+        bond_couple: list[tuple[int, int]]  # Bond couples
+        bond_dict: dict[tuple[int, int], int]  # type of each couple
+        bonds_type: list[int]  # type of each bond
         ai_type = [self.atom_info.loc[self.atom_info['aid'] == item]
                    ['type'][item-1] for item in ai]
         aj_type = [self.atom_info.loc[self.atom_info['aid'] == item]
@@ -309,7 +311,6 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
 
     def mk_atom_df(self,
                    coords_df: pd.DataFrame,  # xyz of atoms
-                   element_df: pd.DataFrame  # Atomic numbers
                    ) -> pd.DataFrame:
         """return atoms coordinates in LAMMPS style"""
         mol: list[int]  # index for the moelcule, HERE 1!
@@ -391,7 +392,7 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
             element = df.iloc[i]['element']
             iloc = self.peridic_table.loc[self.peridic_table['number'] ==
                                           element]
-            i_name = iloc['name'][element]
+            i_name = iloc['symbol'][element]
             i_mass = iloc['atomic_mass'][element]
             name.append(i_name)
             mass.append(i_mass)
@@ -410,4 +411,4 @@ class ConvertJson(ReadJson,  # Read the main data file for atoms and bonds
 
 if __name__ == '__main__':
     fname = sys.argv[1]
-    json = ConvertJson(fname)
+    fjson = ConvertJson(fname)
