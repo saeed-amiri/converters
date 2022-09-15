@@ -51,7 +51,7 @@ class Itp:
         dihedrals: bool = False  # Flag of 'dihedrals' occurrence
         imporopers: bool = False  # Flag of 'imporopers' occurrence
         moleculetype: bool = False  # Flag of 'moleculetype' occurrence
-        self.atoms_info: dict[str, list[str]] = {}  # Lines of atoms section
+        atoms_info: list[str] = []  # to append atoms lines
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
@@ -85,41 +85,77 @@ class Itp:
                                 False, False
                     else:
                         if atoms:
-                            self.get_atoms_info(line.strip())
+                            atoms_info.append(line)
                 if not line:
                     break
-        pprint(self.atoms_info)
+        atom = AtomsInfo(atoms_info)
+        print(atom.df)
+
+
+class AtomsInfo:
+    """get atoms wild information and retrun a DataFrame"""
+    def __init__(self,
+                 atoms: list[str]  # lines read by Itp class
+                 ) -> None:
+        self.df = self.get_atoms_info(atoms)
 
     def get_atoms_info(self,
-                       line: str  # Line of the atoms' section)
-                       ) -> None:
+                       atoms: list[str]  # Lines of the atoms' section
+                       ) -> pd.DataFrame:
         """get atoms info from the file"""
         l_line: list[str]  # Breaking the line cahrs
         # Check if header of the atoms section is same as the defeined one
-        keys: list[str]   # Keys for the atoms dict, name of each column
-        keys = ['atomnr', 'atomtype', 'resnr', 'resname', 'atomname',
-                'chargegrp', 'charge', 'mass']
-
-        if line.startswith(';'):
-            l_line = self.free_char_line(line)
-            if 'Total' not in l_line:
-                if l_line == keys:
-                    for item in keys:
-                        self.atoms_info[item] = []
-                else:
-                    exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
-                         f'\tError in the [ atoms ] header of the itp file\n'
-                         f'{bcolors.ENDC}')
-        else:
-            l_line = self.free_char_line(line)
-            self.atoms_info['atomnr'].append(l_line[0])
-            self.atoms_info['atomtype'].append(l_line[1])
-            self.atoms_info['resnr'].append(l_line[2])
-            self.atoms_info['resname'].append(l_line[3])
-            self.atoms_info['atomname'].append(l_line[4])
-            self.atoms_info['chargegrp'].append(l_line[5])
-            self.atoms_info['charge'].append(l_line[6])
-            self.atoms_info['mass'].append(l_line[7])
+        columns: list[str]   # columns for the atoms dict, name of each column
+        columns = ['atomnr', 'atomtype', 'resnr', 'resname', 'atomname',
+                   'chargegrp', 'charge', 'mass']
+        atomnr: list[typing.Any] = []  # list to append info: atoms id
+        atomtype: list[typing.Any] = []  # list to append info: forcefield type
+        resnr: list[typing.Any] = []  # list to append info: res infos
+        resname: list[typing.Any] = []  # list to append info: res number
+        atomname: list[typing.Any] = []  # list to append info: atom name
+        chargegrp: list[typing.Any] = []  # list to append info: charge group
+        charge: list[typing.Any] = []  # list to append info: charge value
+        mass: list[typing.Any] = []  # list to append info: mass value
+        atomsty: list[typing.Any] = []  # list to append info: name with style
+        chemi: list[typing.Any] = []  # list to append info: name with alkane
+        name: list[typing.Any] = []  # list to append info: real name
+        for line in atoms:
+            if line.startswith(';'):
+                l_line = self.free_char_line(line)
+                if 'Total' not in l_line:
+                    if l_line == columns:
+                        pass
+                    else:
+                        exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                             f'\tError in the [ atoms ] header of the '
+                             f'itp file\n{bcolors.ENDC}')
+            else:
+                l_line = self.free_char_line(line)
+                atomnr.append(l_line[0])
+                atomtype.append(l_line[1])
+                resnr.append(l_line[2])
+                resname.append(l_line[3])
+                atomname.append(l_line[4])
+                chargegrp.append(l_line[5])
+                charge.append(l_line[6])
+                mass.append(l_line[7])
+                atomsty.append(l_line[8])
+                chemi.append(l_line[9])
+                name.append(l_line[10])
+        df: pd.DataFrame  # DataFrame from the infos
+        df = pd.DataFrame(columns=columns)
+        df['atomnr'] = atomnr
+        df['atomtype'] = atomtype
+        df['resnr'] = resnr
+        df['resname'] = resname
+        df['atomname'] = atomname
+        df['chargegrp'] = chargegrp
+        df['charge'] = charge
+        df['mass'] = mass
+        df['atomsty'] = atomsty
+        df['chemi'] = chemi
+        df['name'] = name
+        return df
 
     def free_char_line(self,
                        line: str  # line of the itp file
