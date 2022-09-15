@@ -6,6 +6,12 @@ import pandas as pd
 class Pdb:
     """
     Reading the PDB file and returning the coordinates.
+
+    NONTE:
+    It will return a dataframe without 'type' column since it is not
+    in the PDB file. It will be added to the data frame by the read_itp
+    scrips.
+
     The PDB file consider is in standard PDB format.
     It reads the PDB file and return the information in DataFrames.
     convert LAMMPS data file to a standard PDB file format based on:
@@ -186,4 +192,3 @@ class Pdb:
 
 if __name__ == '__main__':
     pdb = Pdb(sys.argv[1])
-    print(pdb.atoms_df)
