@@ -1,3 +1,4 @@
+from pprint import pprint
 import sys
 import typing
 import pandas as pd
@@ -50,7 +51,7 @@ class Itp:
         dihedrals: bool = False  # Flag of 'dihedrals' occurrence
         imporopers: bool = False  # Flag of 'imporopers' occurrence
         moleculetype: bool = False  # Flag of 'moleculetype' occurrence
-        self.atoms_info: dict[int, list[str]] = {}  # Lines of atoms section
+        self.atoms_info: dict[str, list[str]] = {}  # Lines of atoms section
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
@@ -87,25 +88,38 @@ class Itp:
                             self.get_atoms_info(line.strip())
                 if not line:
                     break
+        pprint(self.atoms_info)
 
     def get_atoms_info(self,
                        line: str  # Line of the atoms' section)
                        ) -> None:
         """get atoms info from the file"""
         l_line: list[str]  # Breaking the line cahrs
-        keys: list[str]   # Keys for the atoms dict
+        # Check if header of the atoms section is same as the defeined one
+        keys: list[str]   # Keys for the atoms dict, name of each column
         keys = ['atomnr', 'atomtype', 'resnr', 'resname', 'atomname',
                 'chargegrp', 'charge', 'mass']
 
         if line.startswith(';'):
             l_line = self.free_char_line(line)
-            if l_line[0] != 'Total':
-                if l_line != keys:
+            if 'Total' not in l_line:
+                if l_line == keys:
+                    for item in keys:
+                        self.atoms_info[item] = []
+                else:
                     exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
                          f'\tError in the [ atoms ] header of the itp file\n'
                          f'{bcolors.ENDC}')
         else:
             l_line = self.free_char_line(line)
+            self.atoms_info['atomnr'].append(l_line[0])
+            self.atoms_info['atomtype'].append(l_line[1])
+            self.atoms_info['resnr'].append(l_line[2])
+            self.atoms_info['resname'].append(l_line[3])
+            self.atoms_info['atomname'].append(l_line[4])
+            self.atoms_info['chargegrp'].append(l_line[5])
+            self.atoms_info['charge'].append(l_line[6])
+            self.atoms_info['mass'].append(l_line[7])
 
     def free_char_line(self,
                        line: str  # line of the itp file
