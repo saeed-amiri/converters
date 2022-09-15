@@ -1,6 +1,7 @@
-import sys 
+import sys
 import typing
 import pandas as pd
+
 
 class Doc:
     """reading itp files and return data several data frames
@@ -28,3 +29,30 @@ class Doc:
     (funct = 1), 3 improper (funct = 4) and no Ryckaert-Bellemans type
     dihedrals.
     """
+
+
+class Itp:
+    """read itp file and return a DataFrame of the information
+    within the file"""
+    def __init__(self,
+                 fname: str  # Name of the itp file
+                 ) -> None:
+        self.get_itp(fname)
+
+    def get_itp(self,
+                fname: str  # Name of the itp file
+                ) -> None:
+        """read the file line by line and call related methods"""
+        with open(fname, 'r') as f:
+            while True:
+                line: str = f.readline()
+                l_line: list[str]  # Breaking the line to cahrs
+                if line:
+                    l_line = line.strip().split()
+                    print(l_line)
+                if not line:
+                    break
+
+
+if __name__ == '__main__':
+    itp = Itp(sys.argv[1])
