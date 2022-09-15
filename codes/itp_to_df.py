@@ -43,13 +43,20 @@ class Itp:
                 fname: str  # Name of the itp file
                 ) -> None:
         """read the file line by line and call related methods"""
+        atoms: bool = False  # Flag of 'atoms' occurrence
+        bonds: bool = False  # Flag of 'bonds' occurrence
+        angles: bool = False  # Flag of 'angles' occurrence
+        dihedrals: bool = False  # Flag of 'dihedrals' occurrence
+        imporopers: bool = False  # Flag of 'imporopers' occurrence
+        moleculetype: bool = False  # Flag of 'moleculetype' occurrence
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
-                l_line: list[str]  # Breaking the line to cahrs
-                if line:
-                    l_line = line.strip().split()
-                    print(l_line)
+                if line.strip():
+                    if line.strip().startswith('['):
+                        wilds: list[str]  # Parts of the line
+                        wilds = line.strip().split()
+                        print(wilds)
                 if not line:
                     break
 
