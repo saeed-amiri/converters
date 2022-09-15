@@ -1,6 +1,7 @@
 import sys
 import typing
 import pandas as pd
+from colors_text import TextColor as bcolors
 
 
 class Doc:
@@ -49,6 +50,7 @@ class Itp:
         dihedrals: bool = False  # Flag of 'dihedrals' occurrence
         imporopers: bool = False  # Flag of 'imporopers' occurrence
         moleculetype: bool = False  # Flag of 'moleculetype' occurrence
+        self.atoms_info: dict[int, list[str]] = {}  # Lines of atoms section
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
@@ -56,9 +58,65 @@ class Itp:
                     if line.strip().startswith('['):
                         wilds: list[str]  # Parts of the line
                         wilds = line.strip().split()
-                        print(wilds)
+                        if wilds[1] == 'atoms':
+                            atoms, bonds, angles, dihedrals, imporopers,\
+                                moleculetype = True, False, False, False,\
+                                False, False
+                        elif wilds[1] == 'bonds':
+                            atoms, bonds, angles, dihedrals, imporopers,\
+                                moleculetype = False, True, False, False,\
+                                False, False
+                        elif wilds[1] == 'angles':
+                            atoms, bonds, angles, dihedrals, imporopers,\
+                                moleculetype = False, False, True, False,\
+                                False, False
+                        elif wilds[1] == 'dihedrals':
+                            atoms, bonds, angles, dihedrals, imporopers,\
+                                moleculetype = False, False, True, False,\
+                                False, False
+                        elif wilds[1] == 'moleculestype':
+                            atoms, bonds, angles, dihedrals, imporopers,\
+                                moleculetype = False, False, False, False,\
+                                False, True
+                        else:
+                            atoms, bonds, angles, dihedrals, imporopers,\
+                                moleculetype = False, False, False, False,\
+                                False, False
+                    else:
+                        if atoms:
+                            self.get_atoms_info(line.strip())
                 if not line:
                     break
+
+    def get_atoms_info(self,
+                       line: str  # Line of the atoms' section)
+                       ) -> None:
+        """get atoms info from the file"""
+        l_line: list[str]  # Breaking the line cahrs
+        keys: list[str]   # Keys for the atoms dict
+        keys = ['atomnr', 'atomtype', 'resnr', 'resname', 'atomname',
+                'chargegrp', 'charge', 'mass']
+
+        if line.startswith(';'):
+            l_line = self.free_char_line(line)
+            if l_line[0] != 'Total':
+                if l_line != keys:
+                    exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                         f'\tError in the [ atoms ] header of the itp file\n'
+                         f'{bcolors.ENDC}')
+        else:
+            l_line = self.free_char_line(line)
+
+    def free_char_line(self,
+                       line: str  # line of the itp file
+                       ) -> list[str]:  # Free from chars
+        """cheack the lines and return the line free special chars"""
+        char_list: list[str] = [';', '#', ':']  # chars to eliminate from lines
+        l_line: list[str]  # Breaking the line cahrs
+        l_line = line.strip().split(' ')
+        l_line = [item for item in l_line if item]
+        l_line = [item for item in l_line if item not in char_list]
+        return l_line
 
 
 if __name__ == '__main__':
