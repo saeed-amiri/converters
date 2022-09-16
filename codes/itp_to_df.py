@@ -37,7 +37,7 @@ class Doc:
 def free_char_line(line: str  # line of the itp file
                    ) -> list[str]:  # Free from chars
     """cheack the lines and return the line free special chars"""
-    char_list: list[str] = [';', '#', ':']  # chars to eliminate from lines
+    char_list: list[str] = [';', '#', ':', '...']  # chars to eliminate from lines
     l_line: list[str]  # Breaking the line cahrs
     l_line = line.strip().split(' ')
     l_line = [item for item in l_line if item]
@@ -130,10 +130,12 @@ class Itp:
         atom = AtomsInfo(atoms_info)
         bond = BondsInfo(atoms=atom.df, bonds=bonds_info)
         angle = AnglesInfo(atoms=atom.df, angles=angles_info)
+        dihedral = DihedralsInfo(atoms=atom.df, dihedrals=dihedrals_info)
         self.Atoms_df = atom.df
         self.Bonds_df = bond.df
         self.Angles_df = angle.df
-        pprint(dihedrals_info)
+        self.Dihedrals_df = dihedral.df
+        pprint(self.Dihedrals_df)
 
 
 class AtomsInfo:
@@ -371,6 +373,105 @@ class AnglesInfo:
                             in zip(ai_name, aj_name, ak_name)]
         if list(df['name']) != names:
             exit(f'{bcolors.FAIL}\tError! in the angles and atoms name!'
+                 f'{bcolors.ENDC}')
+
+
+class DihedralsInfo:
+    """get the dihdrals list from Itp class and return a dataframe"""
+    def __init__(self,
+                 dihedrals: list[str],  # lines of dihedrals section by Itp class
+                 atoms: pd.DataFrame  # atoms df from AtomsInfo to get names
+                 ) -> None:
+        """get the dihedrals infos"""
+        self.mk_dihedrals_df(dihedrals, atoms)
+
+    def mk_dihedrals_df(self,
+                     dihedrals: list[str],  # lines of dihedrals section
+                     atoms: pd.DataFrame  # atoms df from AtomInfo
+                     ) -> None:
+        """call all the methods to make the bonds DataFrame"""
+        ai: list[int]  # index of the 1st atoms in the dihedrals
+        aj: list[int]  # index of the 2nd atoms in the dihedrals
+        ak: list[int]  # index of the 3rd atoms in the dihedrals
+        al: list[int]  # index of the 4th atoms in the dihedrals
+        names: list[str]  # name of the dihedrals
+        ai, aj, ak, al, names = self.get_dihedrals(dihedrals)
+        self.df = self.mk_df(ai, aj, ak, al, names, atoms)
+
+    def get_dihedrals(self,
+                   dihedrals: list[str],  # lines of dihedrals section by Itp class
+                   ) -> pd.DataFrame:  # DataFrame of the dihedrals
+        """return bonds dataframe to make dihedrals dataframe"""
+        columns: list[str]  # Columns of the dihedrals wild
+        columns = ['ai', 'aj', 'ak', 'al', 'funct', 'C0', 'C5']
+        ai: list[int] = []  # index of the 1st atoms in the dihedrals
+        aj: list[int] = []  # index of the 2nd atoms in the dihedrals
+        ak: list[int] = []  # index of the 3rd atoms in the dihedrals
+        al: list[int] = []  # index of the 4th atoms in the dihedrals
+        names: list[str] = []  # name of the dihedrals
+        for line in dihedrals:
+            if line.startswith(';'):  # line start with ';' are commets&header
+                l_line = free_char_line(line)
+                if 'Total' not in l_line:  # Not header!
+                    if l_line == columns:
+                        pass
+                    else:
+                        exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                             f'\tError in the [ dihedrals ] header of the '
+                             f'itp file\n{bcolors.ENDC}')
+            else:
+                l_line = free_char_line(line)
+                ai.append(int(l_line[0]))
+                aj.append(int(l_line[1]))
+                ak.append(int(l_line[2]))
+                al.append(int(l_line[3]))
+                names.append(l_line[5])
+        return ai, aj, ak, al, names
+
+    def mk_df(self,
+              ai: list[int],  # index of the 1st atom in the dihedrals
+              aj: list[int],  # index of the 2nd atom in the dihedrals
+              ak: list[int],  # index of the 3rd atom in the dihedrals
+              al: list[int],  # index of the 4th atom in the dihedrals
+              names: list[str],  # names of the bonds form dihedrals section
+              atoms: pd.DataFrame  # atoms df from AtomsInfo to cehck the name
+              ) -> pd.DataFrame:  # dihedrals DataFrame
+        """make DataFrame and check if they are same as atoms name"""
+        df: pd.DataFrame  # to save the dihedrals_df
+        df = pd.DataFrame(
+            columns=['typ', 'ai', 'aj', 'ak', 'al', 'cmt', 'name'])
+        df['ai'] = ai
+        df['aj'] = aj
+        df['ak'] = ak
+        df['al'] = al
+        df['name'] = names
+        df['cmt'] = ['#' for _ in ai]
+        df['typ'] = get_type(names)
+        self.check_names(df, atoms)
+        return df
+
+    def check_names(self,
+                    df: pd.DataFrame,  # Df to check its names column
+                    atoms: pd.DataFrame  # Df source (mostly atoms df)
+                    ) -> None:
+        """ checks the names column in the source file with comparing it
+        with names from the atoms dataframe name column for each atom"""
+        ai_name: list[str]  # name of the 1st atom from the list
+        aj_name: list[str]  # name of the 2nd atom from the list
+        ak_name: list[str]  # name of the 3rd atom from the list
+        al_name: list[str]  # name of the 4th atom from the list
+        ai_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['ai']]
+        aj_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['aj']]
+        ak_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['ak']]
+        al_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['al']]  
+        names: list[str] = [f'{i}-{j}-{k}-{l}' for i, j, k, l
+                            in zip(ai_name, aj_name, ak_name, al_name)]
+        if list(df['name']) != names:
+            exit(f'{bcolors.FAIL}\tError! in the dihedrals and atoms name!'
                  f'{bcolors.ENDC}')
 
 
