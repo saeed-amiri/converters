@@ -229,10 +229,24 @@ class BondsInfo:
               ) -> None:
         """make DataFrame and check if they are same as atoms name"""
         df: pd.DataFrame  # to save the bonds_df
-        df = pd.DataFrame(columns=['ai', 'aj', 'typ', 'cmt', 'name'])
+        df = pd.DataFrame(columns=['typ', 'ai', 'aj', 'cmt', 'name'])
         df['ai'] = ai
         df['aj'] = aj
         df['name'] = names
+        df['cmt'] = ['#' for _ in ai]
+        df['typ'] = self.get_type(names)
+        print(df)
+
+    def get_type(self,
+                 lst: list[str]  # list to get the number of distenguished ones
+                 ) -> list[int]:  # types' index
+        """make type based on the unique items in the lst"""
+        type_set: set[str] = set(lst)  # eleminate the repeated names
+        type_dict: dict[str, int]  # to make a list with type index
+        type_dict = {item: i+1 for i, item in enumerate(type_set)}
+        types: list[int]  # types to return
+        types = [type_dict[item] for item in lst]
+        return types
 
 
 if __name__ == '__main__':
