@@ -1,4 +1,4 @@
-from pprint import pprint
+from dataclasses import replace
 import sys
 import typing
 import pandas as pd
@@ -37,7 +37,7 @@ class Doc:
 def free_char_line(line: str  # line of the itp file
                    ) -> list[str]:  # Free from chars
     """cheack the lines and return the line free special chars"""
-    char_list: list[str] = [';', '#', ':', '...']  # chars to eliminate from lines
+    char_list: list[str] = [';', '#', ':', '...']  # chars eliminate in lines
     l_line: list[str]  # Breaking the line cahrs
     l_line = line.strip().split(' ')
     l_line = [item for item in l_line if item]
@@ -200,8 +200,13 @@ class AtomsInfo:
         df['mass'] = mass
         df['atomsty'] = atomsty
         df['chemi'] = chemi
-        df['name'] = name
+        df['name'] = self.drop_dot(name)
         return df
+
+    def drop_dot(self,
+                 chars: list[str]  # to drop . from its items
+                 ) -> list[str]:
+        return [item.replace('.', '') for item in chars]
 
 
 class BondsInfo:
@@ -378,16 +383,16 @@ class AnglesInfo:
 class DihedralsInfo:
     """get the dihdrals list from Itp class and return a dataframe"""
     def __init__(self,
-                 dihedrals: list[str],  # lines of dihedrals section by Itp class
+                 dihedrals: list[str],  # lines of dihedrals section by Itp
                  atoms: pd.DataFrame  # atoms df from AtomsInfo to get names
                  ) -> None:
         """get the dihedrals infos"""
         self.mk_dihedrals_df(dihedrals, atoms)
 
     def mk_dihedrals_df(self,
-                     dihedrals: list[str],  # lines of dihedrals section
-                     atoms: pd.DataFrame  # atoms df from AtomInfo
-                     ) -> None:
+                        dihedrals: list[str],  # lines of dihedrals section
+                        atoms: pd.DataFrame  # atoms df from AtomInfo
+                        ) -> None:
         """call all the methods to make the bonds DataFrame"""
         ai: list[int]  # index of the 1st atoms in the dihedrals
         aj: list[int]  # index of the 2nd atoms in the dihedrals
@@ -398,8 +403,8 @@ class DihedralsInfo:
         self.df = self.mk_df(ai, aj, ak, al, names, atoms)
 
     def get_dihedrals(self,
-                   dihedrals: list[str],  # lines of dihedrals section by Itp class
-                   ) -> pd.DataFrame:  # DataFrame of the dihedrals
+                      dihedrals: list[str],  # lines of dihedrals section
+                      ) -> pd.DataFrame:  # DataFrame of the dihedrals
         """return bonds dataframe to make dihedrals dataframe"""
         columns: list[str]  # Columns of the dihedrals wild
         columns = ['ai', 'aj', 'ak', 'al', 'funct', 'C0', 'C5']
@@ -466,7 +471,7 @@ class DihedralsInfo:
         ak_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
                    for item in df['ak']]
         al_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
-                   for item in df['al']]  
+                   for item in df['al']]
         names: list[str] = [f'{i}-{j}-{k}-{l}' for i, j, k, l
                             in zip(ai_name, aj_name, ak_name, al_name)]
         if list(df['name']) != names:
