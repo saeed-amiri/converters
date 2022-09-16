@@ -33,7 +33,7 @@ class Doc:
     """
 
 
-# A helper function needed by most of the classes
+# A helper function needed by most of the classes to clean the lines
 def free_char_line(line: str  # line of the itp file
                    ) -> list[str]:  # Free from chars
     """cheack the lines and return the line free special chars"""
@@ -43,6 +43,17 @@ def free_char_line(line: str  # line of the itp file
     l_line = [item for item in l_line if item]
     l_line = [item for item in l_line if item not in char_list]
     return l_line
+
+# A helper function needed by most of the classes to get types for LAMMPS
+def get_type(lst: list[str]  # list to get the number of distenguished ones
+             ) -> list[int]:  # types' index
+        """make type based on the unique items in the lst"""
+        type_set: set[str] = set(lst)  # eleminate the repeated names
+        type_dict: dict[str, int]  # to make a list with type index
+        type_dict = {item: i+1 for i, item in enumerate(type_set)}
+        types: list[int]  # types to return
+        types = [type_dict[item] for item in lst]
+        return types
 
 
 class Itp:
@@ -65,6 +76,7 @@ class Itp:
         moleculetype: bool = False  # Flag of 'moleculetype' occurrence
         atoms_info: list[str] = []  # to append atoms lines
         bonds_info: list[str] = []  # to append bonds lines
+        angles_info: list[str] = []  # to append angles lines
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
@@ -86,8 +98,8 @@ class Itp:
                                 False, False
                         elif wilds[1] == 'dihedrals':
                             atoms, bonds, angles, dihedrals, imporopers,\
-                                moleculetype = False, False, True, False,\
-                                False, False
+                                moleculetype = False, False, False, False,\
+                                True, False
                         elif wilds[1] == 'moleculestype':
                             atoms, bonds, angles, dihedrals, imporopers,\
                                 moleculetype = False, False, False, False,\
@@ -101,10 +113,16 @@ class Itp:
                             atoms_info.append(line)
                         if bonds:
                             bonds_info.append(line)
+                        if angles:
+                            angles_info.append(line)
                 if not line:
                     break
         atom = AtomsInfo(atoms_info)
         bond = BondsInfo(atoms=atom.Atoms_df, bonds=bonds_info)
+        angle = AnglesInfo(atoms=atom.Atoms_df, angles=angles_info)
+        # print(angle.Angles_df)
+        # print(bond.Bonds_df)
+        # print(atom.Atoms_df)
 
 
 class AtomsInfo:
@@ -191,12 +209,11 @@ class BondsInfo:
         ai: list[int]  # index of the 1st atoms in the bonds
         aj: list[int]  # index of the 2nd atoms in the bonds
         names: list[str]  # name of the bonds
-        ai, aj, names = self.get_bonds(bonds, atoms)
+        ai, aj, names = self.get_bonds(bonds)
         self.Bonds_df = self.mk_df(ai, aj, names, atoms)
 
     def get_bonds(self,
-                  bonds: list[str],  # lines of bonds section read by Itp class
-                  atoms: pd.DataFrame  # atoms df from AtomsInfo to get names
+                  bonds: list[str]  # lines of bonds section read by Itp class
                   ) -> pd.DataFrame:  # DataFrame of the bonds
         """return bonds dataframe to make bonds dataframe"""
         columns: list[str]  # Columns of the bonds wild
@@ -226,7 +243,7 @@ class BondsInfo:
               aj: list[int],  # index of the 2nd atom in the bonds
               names: list[str],  # names of the bonds form bonds section
               atoms: pd.DataFrame  # atoms df from AtomsInfo to cehck the name
-              ) -> None:
+              ) -> pd.DataFrame:  # bonds DataFrame
         """make DataFrame and check if they are same as atoms name"""
         df: pd.DataFrame  # to save the bonds_df
         df = pd.DataFrame(columns=['typ', 'ai', 'aj', 'cmt', 'name'])
@@ -234,20 +251,9 @@ class BondsInfo:
         df['aj'] = aj
         df['name'] = names
         df['cmt'] = ['#' for _ in ai]
-        df['typ'] = self.get_type(names)
+        df['typ'] = get_type(names)
         self.check_names(df, atoms)
         return df
-
-    def get_type(self,
-                 lst: list[str]  # list to get the number of distenguished ones
-                 ) -> list[int]:  # types' index
-        """make type based on the unique items in the lst"""
-        type_set: set[str] = set(lst)  # eleminate the repeated names
-        type_dict: dict[str, int]  # to make a list with type index
-        type_dict = {item: i+1 for i, item in enumerate(type_set)}
-        types: list[int]  # types to return
-        types = [type_dict[item] for item in lst]
-        return types
 
     def check_names(self,
                     df: pd.DataFrame,  # Df to check its names column
@@ -264,6 +270,96 @@ class BondsInfo:
         names: list[str] = [f'{i}-{j}' for i, j in zip(ai_name, aj_name)]
         if list(df['name']) != names:
             exit(f'{bcolors.FAIL}\tError! in the bonds and atoms name!'
+                 f'{bcolors.ENDC}')
+
+
+class AnglesInfo:
+    """get the angles list from Itp class and return a dataframe"""
+    def __init__(self,
+                 angles: list[str],  # lines of angles section by Itp class
+                 atoms: pd.DataFrame  # atoms df from AtomsInfo to get names
+                 ) -> None:
+        """get the angles infos"""
+        self.mk_angles_df(angles, atoms)
+
+    def mk_angles_df(self,
+                     angles: list[str],  # lines of angles section
+                     atoms: pd.DataFrame  # atoms df from AtomInfo
+                     ) -> None:
+        """call all the methods to make the bonds DataFrame"""
+        ai: list[int]  # index of the 1st atoms in the angles
+        aj: list[int]  # index of the 2nd atoms in the angles
+        ak: list[int]  # index of the 3rd atoms in the angles
+        names: list[str]  # name of the angles
+        ai, aj, ak, names = self.get_angles(angles)
+        self.Angles_df = self.mk_df(ai, aj, ak, names, atoms)
+
+    def get_angles(self,
+                   angles: list[str],  # lines of angles section by Itp class
+                   ) -> pd.DataFrame:  # DataFrame of the angles
+        """return bonds dataframe to make angles dataframe"""
+        columns: list[str]  # Columns of the angles wild
+        columns = ['ai', 'aj', 'ak', 'funct', 'theta', 'cth']
+        ai: list[int] = []  # index of the 1st atoms in the angles
+        aj: list[int] = []  # index of the 2nd atoms in the angles
+        ak: list[int] = []  # index of the 3rd atoms in the angles
+        names: list[str] = []  # name of the angles
+        for line in angles:
+            if line.startswith(';'):  # line start with ';' are commets&header
+                l_line = free_char_line(line)
+                if 'Total' not in l_line:  # Not header!
+                    if l_line == columns:
+                        pass
+                    else:
+                        exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                             f'\tError in the [ angles ] header of the '
+                             f'itp file\n{bcolors.ENDC}')
+            else:
+                l_line = free_char_line(line)
+                ai.append(int(l_line[0]))
+                aj.append(int(l_line[1]))
+                ak.append(int(l_line[2]))
+                names.append(l_line[4])
+        return ai, aj, ak, names
+
+    def mk_df(self,
+              ai: list[int],  # index of the 1st atom in the angles
+              aj: list[int],  # index of the 2nd atom in the angles
+              ak: list[int],  # index of the 3rd atom in the angles
+              names: list[str],  # names of the bonds form angles section
+              atoms: pd.DataFrame  # atoms df from AtomsInfo to cehck the name
+              ) -> pd.DataFrame:  # angles DataFrame
+        """make DataFrame and check if they are same as atoms name"""
+        df: pd.DataFrame  # to save the angles_df
+        df = pd.DataFrame(columns=['typ', 'ai', 'aj', 'ak', 'cmt', 'name'])
+        df['ai'] = ai
+        df['aj'] = aj
+        df['ak'] = ak
+        df['name'] = names
+        df['cmt'] = ['#' for _ in ai]
+        df['typ'] = get_type(names)
+        self.check_names(df, atoms)
+        return df
+
+    def check_names(self,
+                    df: pd.DataFrame,  # Df to check its names column
+                    atoms: pd.DataFrame  # Df source (mostly atoms df)
+                    ) -> None:
+        """ checks the names column in the source file with comparing it
+        with names from the atoms dataframe name column for each atom"""
+        ai_name: list[str]  # name of the 1st atom from the list
+        aj_name: list[str]  # name of the 2nd atom from the list
+        ak_name: list[str]  # name of the 3rd atom from the list
+        ai_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['ai']]
+        aj_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['aj']]
+        ak_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['ak']]
+        names: list[str] = [f'{i}-{j}-{k}' for i, j, k
+                            in zip(ai_name, aj_name, ak_name)]
+        if list(df['name']) != names:
+            exit(f'{bcolors.FAIL}\tError! in the angles and atoms name!'
                  f'{bcolors.ENDC}')
 
 
