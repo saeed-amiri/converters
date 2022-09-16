@@ -33,6 +33,18 @@ class Doc:
     """
 
 
+# A helper function needed by most of the classes
+def free_char_line(line: str  # line of the itp file
+                   ) -> list[str]:  # Free from chars
+    """cheack the lines and return the line free special chars"""
+    char_list: list[str] = [';', '#', ':']  # chars to eliminate from lines
+    l_line: list[str]  # Breaking the line cahrs
+    l_line = line.strip().split(' ')
+    l_line = [item for item in l_line if item]
+    l_line = [item for item in l_line if item not in char_list]
+    return l_line
+
+
 class Itp:
     """read itp file and return a DataFrame of the information
     within the file"""
@@ -52,6 +64,7 @@ class Itp:
         imporopers: bool = False  # Flag of 'imporopers' occurrence
         moleculetype: bool = False  # Flag of 'moleculetype' occurrence
         atoms_info: list[str] = []  # to append atoms lines
+        bonds_info: list[str] = []  # to append bonds lines
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
@@ -86,10 +99,12 @@ class Itp:
                     else:
                         if atoms:
                             atoms_info.append(line)
+                        if bonds:
+                            bonds_info.append(line)
                 if not line:
                     break
         atom = AtomsInfo(atoms_info)
-        print(atom.df)
+        bond = BondsInfo(atoms=atom.df, bonds=bonds_info)
 
 
 class AtomsInfo:
@@ -116,13 +131,14 @@ class AtomsInfo:
         chargegrp: list[typing.Any] = []  # list to append info: charge group
         charge: list[typing.Any] = []  # list to append info: charge value
         mass: list[typing.Any] = []  # list to append info: mass value
+        # The 3 columns below do not have header, I added to get useful name
         atomsty: list[typing.Any] = []  # list to append info: name with style
         chemi: list[typing.Any] = []  # list to append info: name with alkane
         name: list[typing.Any] = []  # list to append info: real name
         for line in atoms:
-            if line.startswith(';'):
-                l_line = self.free_char_line(line)
-                if 'Total' not in l_line:
+            if line.startswith(';'):  # line start with ';' are commets&header
+                l_line = free_char_line(line)
+                if 'Total' not in l_line:  # Not header!
                     if l_line == columns:
                         pass
                     else:
@@ -130,7 +146,7 @@ class AtomsInfo:
                              f'\tError in the [ atoms ] header of the '
                              f'itp file\n{bcolors.ENDC}')
             else:
-                l_line = self.free_char_line(line)
+                l_line = free_char_line(line)
                 atomnr.append(l_line[0])
                 atomtype.append(l_line[1])
                 resnr.append(l_line[2])
@@ -157,16 +173,42 @@ class AtomsInfo:
         df['name'] = name
         return df
 
-    def free_char_line(self,
-                       line: str  # line of the itp file
-                       ) -> list[str]:  # Free from chars
-        """cheack the lines and return the line free special chars"""
-        char_list: list[str] = [';', '#', ':']  # chars to eliminate from lines
-        l_line: list[str]  # Breaking the line cahrs
-        l_line = line.strip().split(' ')
-        l_line = [item for item in l_line if item]
-        l_line = [item for item in l_line if item not in char_list]
-        return l_line
+
+class BondsInfo:
+    """get the bonds list from Itp class and return a dataframe"""
+    def __init__(self,
+                 bonds: list[str],  # lines of bonds section read by Itp class
+                 atoms: pd.DataFrame  # atoms df from AtomsInfo to get names
+                 ) -> None:
+        """get the bonds infos"""
+        self.get_bonds(bonds, atoms)
+
+    def get_bonds(self,
+                  bonds: list[str],  # lines of bonds section read by Itp class
+                  atoms: pd.DataFrame  # atoms df from AtomsInfo to get names
+                  ) -> pd.DataFrame:  # DataFrame of the bonds
+        """return bonds dataframe to make bonds dataframe"""
+        columns: list[str]  # Columns of the bonds wild
+        columns = ['ai', 'aj', 'funct', 'r', 'k']
+        ai: list[str] = []  # index of the 1st atoms in the bonds
+        aj: list[str] = []  # index of the 2nd atoms in the bonds
+        names: list[str] = []  # name of the bonds
+        for line in bonds:
+            if line.startswith(';'):  # line start with ';' are commets&header
+                l_line = free_char_line(line)
+                if 'Total' not in l_line:  # Not header!
+                    if l_line == columns:
+                        pass
+                    else:
+                        exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                             f'\tError in the [ bonds ] header of the '
+                             f'itp file\n{bcolors.ENDC}')
+            else:
+                l_line = free_char_line(line)
+                ai.append(l_line[0])
+                aj.append(l_line[1])
+                names.append(l_line[3])
+        pprint(names)
 
 
 if __name__ == '__main__':
