@@ -397,7 +397,7 @@ class DihedralsInfo:
         ai: list[int]  # index of the 1st atoms in the dihedrals
         aj: list[int]  # index of the 2nd atoms in the dihedrals
         ak: list[int]  # index of the 3rd atoms in the dihedrals
-        al: list[int]  # index of the 4th atoms in the dihedrals
+        ah: list[int]  # index of the 4th atoms in the dihedrals
         names: list[str]  # name of the dihedrals
         ai, aj, ak, al, names = self.get_dihedrals(dihedrals)
         self.df = self.mk_df(ai, aj, ak, al, names, atoms)
@@ -411,7 +411,7 @@ class DihedralsInfo:
         ai: list[int] = []  # index of the 1st atoms in the dihedrals
         aj: list[int] = []  # index of the 2nd atoms in the dihedrals
         ak: list[int] = []  # index of the 3rd atoms in the dihedrals
-        al: list[int] = []  # index of the 4th atoms in the dihedrals
+        ah: list[int] = []  # index of the 4th atoms in the dihedrals
         names: list[str] = []  # name of the dihedrals
         for line in dihedrals:
             if line.startswith(';'):  # line start with ';' are commets&header
@@ -428,26 +428,26 @@ class DihedralsInfo:
                 ai.append(int(l_line[0]))
                 aj.append(int(l_line[1]))
                 ak.append(int(l_line[2]))
-                al.append(int(l_line[3]))
+                ah.append(int(l_line[3]))
                 names.append(l_line[5])
-        return ai, aj, ak, al, names
+        return ai, aj, ak, ah, names
 
     def mk_df(self,
               ai: list[int],  # index of the 1st atom in the dihedrals
               aj: list[int],  # index of the 2nd atom in the dihedrals
               ak: list[int],  # index of the 3rd atom in the dihedrals
-              al: list[int],  # index of the 4th atom in the dihedrals
+              ah: list[int],  # index of the 4th atom in the dihedrals
               names: list[str],  # names of the bonds form dihedrals section
               atoms: pd.DataFrame  # atoms df from AtomsInfo to cehck the name
               ) -> pd.DataFrame:  # dihedrals DataFrame
         """make DataFrame and check if they are same as atoms name"""
         df: pd.DataFrame  # to save the dihedrals_df
         df = pd.DataFrame(
-            columns=['typ', 'ai', 'aj', 'ak', 'al', 'cmt', 'name'])
+            columns=['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name'])
         df['ai'] = ai
         df['aj'] = aj
         df['ak'] = ak
-        df['al'] = al
+        df['ah'] = ah
         df['name'] = names
         df['cmt'] = ['#' for _ in ai]
         df['typ'] = get_type(names)
@@ -463,17 +463,17 @@ class DihedralsInfo:
         ai_name: list[str]  # name of the 1st atom from the list
         aj_name: list[str]  # name of the 2nd atom from the list
         ak_name: list[str]  # name of the 3rd atom from the list
-        al_name: list[str]  # name of the 4th atom from the list
+        ah_name: list[str]  # name of the 4th atom from the list
         ai_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
                    for item in df['ai']]
         aj_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
                    for item in df['aj']]
         ak_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
                    for item in df['ak']]
-        al_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
-                   for item in df['al']]
-        names: list[str] = [f'{i}-{j}-{k}-{l}' for i, j, k, l
-                            in zip(ai_name, aj_name, ak_name, al_name)]
+        ah_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['ah']]
+        names: list[str] = [f'{i}-{j}-{k}-{h}' for i, j, k, h
+                            in zip(ai_name, aj_name, ak_name, ah_name)]
         if list(df['name']) != names:
             exit(f'{bcolors.FAIL}\tError! in the dihedrals and atoms name!'
                  f'{bcolors.ENDC}')
