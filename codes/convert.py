@@ -3,6 +3,7 @@ import json_to_lmp as jlmp
 import write_lmp as lmpwrt
 import itp_pdb_lmp as ipl
 
+
 class Doc:
     """convert files in other format into LAMMPS data file
     Input:
@@ -19,8 +20,8 @@ f_extansion: str  # Extension of the file to call proper function
 f_extansion = fname.split('.')[1]
 if f_extansion == 'json':
     data = jlmp.ConvertJson(fname)
-    output_fname = 'test.data'
-    wrt = lmpwrt.WriteLmp(data, output_fname)
-    wrt.write_lmp()
 if f_extansion == 'itp':
-    pass
+    data = ipl.ItpPdb(fname.split('.')[0])
+output_fname = 'test.data'
+wrt = lmpwrt.WriteLmp(data, output_fname)
+wrt.write_lmp()
