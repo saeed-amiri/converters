@@ -88,7 +88,7 @@ class Pdb:
         # Convert the list to DataFrame
         df = self.mk_df(data)
         # Check the residue number order
-        self.atoms_df = self.check_residue_number(df)
+        self.atoms = self.check_residue_number(df)
 
     def read_pdb(self,
                  fname: str  # PDB file name
