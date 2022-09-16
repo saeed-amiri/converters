@@ -21,10 +21,13 @@ class ItpPdb(Pdb,  # class which give dataframe for the pdb file
         Pdb.__init__(self, f'{fname}.pdb')
         Itp.__init__(self, f'{fname}.itp')
         self.Atoms_df = self.mk_atoms()
-        print(self.Atoms_df)
+        self.Bonds_df = self.bonds
+        self.Angles_df = self.angles
+        self.Dihedrals_df = self.dihedrals
+        print(self.Dihedrals_df)
 
     def mk_atoms(self) -> pd.DataFrame:
-        """make DataFrame form the data files"""
+        """make atom DataFrame form the data files"""
         columns: list[str]  # Header of the LAMMPS atoms full style
         columns = ['atom_id', 'mol', 'typ', 'charge', 'x', 'y', 'z',
                    'nx', 'ny', 'nz', 'cmt', 'name']
@@ -43,6 +46,18 @@ class ItpPdb(Pdb,  # class which give dataframe for the pdb file
         Atoms_df['cmt'] = ['#' for _ in self.atoms.index]
         Atoms_df['name'] = self.atoms_extra['name']
         return Atoms_df
+
+    def mk_bonds(self) -> None:
+        """make bonds DataFrame from data files"""
+        columns: list[str]  # Header of the bonds in LAMMPS
+        columns = ['typ', 'ai', 'aj', 'cmt', 'name']
+        # It made by Itp class
+
+    def mk_angles(self) -> None:
+        """make angles DataFrame from data files"""
+        columns: list[str]  # Header of the angles in LAMMPS
+        columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
+        # It made by Itp class
 
 
 if __name__ == '__main__':
