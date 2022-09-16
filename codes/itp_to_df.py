@@ -44,16 +44,17 @@ def free_char_line(line: str  # line of the itp file
     l_line = [item for item in l_line if item not in char_list]
     return l_line
 
+
 # A helper function needed by most of the classes to get types for LAMMPS
 def get_type(lst: list[str]  # list to get the number of distenguished ones
              ) -> list[int]:  # types' index
-        """make type based on the unique items in the lst"""
-        type_set: set[str] = set(lst)  # eleminate the repeated names
-        type_dict: dict[str, int]  # to make a list with type index
-        type_dict = {item: i+1 for i, item in enumerate(type_set)}
-        types: list[int]  # types to return
-        types = [type_dict[item] for item in lst]
-        return types
+    """make type based on the unique items in the lst"""
+    type_set: set[str] = set(lst)  # eleminate the repeated names
+    type_dict: dict[str, int]  # to make a list with type index
+    type_dict = {item: i+1 for i, item in enumerate(type_set)}
+    types: list[int]  # types to return
+    types = [type_dict[item] for item in lst]
+    return types
 
 
 class Itp:
@@ -72,11 +73,12 @@ class Itp:
         bonds: bool = False  # Flag of 'bonds' occurrence
         angles: bool = False  # Flag of 'angles' occurrence
         dihedrals: bool = False  # Flag of 'dihedrals' occurrence
-        imporopers: bool = False  # Flag of 'imporopers' occurrence
+        impropers: bool = False  # Flag of 'impropers' occurrence
         moleculetype: bool = False  # Flag of 'moleculetype' occurrence
         atoms_info: list[str] = []  # to append atoms lines
         bonds_info: list[str] = []  # to append bonds lines
         angles_info: list[str] = []  # to append angles lines
+        dihedrals_info: list[str] = []  # to append dihedrals lines
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
@@ -85,27 +87,27 @@ class Itp:
                         wilds: list[str]  # Parts of the line
                         wilds = line.strip().split()
                         if wilds[1] == 'atoms':
-                            atoms, bonds, angles, dihedrals, imporopers,\
+                            atoms, bonds, angles, dihedrals, impropers,\
                                 moleculetype = True, False, False, False,\
                                 False, False
                         elif wilds[1] == 'bonds':
-                            atoms, bonds, angles, dihedrals, imporopers,\
+                            atoms, bonds, angles, dihedrals, impropers,\
                                 moleculetype = False, True, False, False,\
                                 False, False
                         elif wilds[1] == 'angles':
-                            atoms, bonds, angles, dihedrals, imporopers,\
+                            atoms, bonds, angles, dihedrals, impropers,\
                                 moleculetype = False, False, True, False,\
                                 False, False
                         elif wilds[1] == 'dihedrals':
-                            atoms, bonds, angles, dihedrals, imporopers,\
-                                moleculetype = False, False, False, False,\
-                                True, False
+                            atoms, bonds, angles, dihedrals, impropers,\
+                                moleculetype = False, False, False, True,\
+                                False, False
                         elif wilds[1] == 'moleculestype':
-                            atoms, bonds, angles, dihedrals, imporopers,\
+                            atoms, bonds, angles, dihedrals, impropers,\
                                 moleculetype = False, False, False, False,\
                                 False, True
                         else:
-                            atoms, bonds, angles, dihedrals, imporopers,\
+                            atoms, bonds, angles, dihedrals, impropers,\
                                 moleculetype = False, False, False, False,\
                                 False, False
                     else:
@@ -115,6 +117,14 @@ class Itp:
                             bonds_info.append(line)
                         if angles:
                             angles_info.append(line)
+                        if dihedrals:
+                            if 'impropers' not in free_char_line(line):
+                                impropers = False
+                            else:
+                                impropers = True
+                                dihedrals = False
+                        if dihedrals and not impropers:
+                            dihedrals_info.append(line)
                 if not line:
                     break
         atom = AtomsInfo(atoms_info)
@@ -123,6 +133,7 @@ class Itp:
         self.Atoms_df = atom.df
         self.Bonds_df = bond.df
         self.Angles_df = angle.df
+        pprint(dihedrals_info)
 
 
 class AtomsInfo:
