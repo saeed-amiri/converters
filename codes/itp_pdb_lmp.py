@@ -24,7 +24,7 @@ class ItpPdb(Pdb,  # class which give dataframe for the pdb file
         self.Bonds_df = self.bonds
         self.Angles_df = self.angles
         self.Dihedrals_df = self.dihedrals
-        print(self.Dihedrals_df)
+        self.mk_masses()
 
     def mk_atoms(self) -> pd.DataFrame:
         """make atom DataFrame form the data files"""
@@ -58,6 +58,26 @@ class ItpPdb(Pdb,  # class which give dataframe for the pdb file
         columns: list[str]  # Header of the angles in LAMMPS
         columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
         # It made by Itp class
+
+    def mk_masses(self) -> pd.DataFrame:
+        """masses and type informatin about atoms"""
+        columns: list[str] = ['typ', 'mass', 'cmt', 'name']
+        df: pd.DataFrame  # temporary for the getting data
+        df = self.atoms_extra.copy()
+        df = df.astype({'mass': float})
+        df = df.loc[df.groupby(by=['name'])['mass'].idxmin(), :]
+        num_list: list[str] = list(df['atomnr'])  # Atoms index of grouped df
+        typ: list[int]  # type pf atoms from main Atoms_df
+        typ = [self.Atoms_df.loc[self.Atoms_df['atom_id'] ==
+               int(item)]['typ'][int(item)-1] for item in num_list]
+        Masses_df = pd.DataFrame(columns=columns)
+        Masses_df['name'] = df['name']
+        Masses_df['mass'] = df['mass']
+        Masses_df['cmt'] = ['#' for _ in Masses_df.index]
+        Masses_df['typ'] = typ
+        Masses_df.reset_index(inplace=True)
+        Masses_df.drop('index', axis=1, inplace=True)
+        return Masses_df
 
 
 if __name__ == '__main__':
