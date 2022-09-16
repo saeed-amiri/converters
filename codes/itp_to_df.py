@@ -118,11 +118,11 @@ class Itp:
                 if not line:
                     break
         atom = AtomsInfo(atoms_info)
-        bond = BondsInfo(atoms=atom.Atoms_df, bonds=bonds_info)
-        angle = AnglesInfo(atoms=atom.Atoms_df, angles=angles_info)
-        # print(angle.Angles_df)
-        # print(bond.Bonds_df)
-        # print(atom.Atoms_df)
+        bond = BondsInfo(atoms=atom.df, bonds=bonds_info)
+        angle = AnglesInfo(atoms=atom.df, angles=angles_info)
+        self.Atoms_df = atom.df
+        self.Bonds_df = bond.df
+        self.Angles_df = angle.df
 
 
 class AtomsInfo:
@@ -130,7 +130,7 @@ class AtomsInfo:
     def __init__(self,
                  atoms: list[str]  # lines read by Itp class
                  ) -> None:
-        self.Atoms_df = self.get_atoms_info(atoms)
+        self.df = self.get_atoms_info(atoms)
 
     def get_atoms_info(self,
                        atoms: list[str]  # Lines of the atoms' section
@@ -210,7 +210,7 @@ class BondsInfo:
         aj: list[int]  # index of the 2nd atoms in the bonds
         names: list[str]  # name of the bonds
         ai, aj, names = self.get_bonds(bonds)
-        self.Bonds_df = self.mk_df(ai, aj, names, atoms)
+        self.df = self.mk_df(ai, aj, names, atoms)
 
     def get_bonds(self,
                   bonds: list[str]  # lines of bonds section read by Itp class
@@ -292,7 +292,7 @@ class AnglesInfo:
         ak: list[int]  # index of the 3rd atoms in the angles
         names: list[str]  # name of the angles
         ai, aj, ak, names = self.get_angles(angles)
-        self.Angles_df = self.mk_df(ai, aj, ak, names, atoms)
+        self.df = self.mk_df(ai, aj, ak, names, atoms)
 
     def get_angles(self,
                    angles: list[str],  # lines of angles section by Itp class
