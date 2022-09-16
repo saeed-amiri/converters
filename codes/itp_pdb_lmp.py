@@ -1,4 +1,3 @@
-import typing
 import pandas as pd
 from itp_to_df import Itp, get_type
 from pdb_to_df import Pdb
@@ -24,7 +23,7 @@ class ItpPdb(Pdb,  # class which give dataframe for the pdb file
         self.Bonds_df = self.bonds
         self.Angles_df = self.angles
         self.Dihedrals_df = self.dihedrals
-        self.mk_masses()
+        self.Masses_df = self.mk_masses()
 
     def mk_atoms(self) -> pd.DataFrame:
         """make atom DataFrame form the data files"""
