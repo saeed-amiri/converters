@@ -188,8 +188,8 @@ class BondsInfo:
                     atoms: pd.DataFrame  # atoms df from AtomInfo
                     ) -> None:
         """call all the methods to make the bonds DataFrame"""
-        ai: list[str]  # index of the 1st atoms in the bonds
-        aj: list[str]  # index of the 2nd atoms in the bonds
+        ai: list[int]  # index of the 1st atoms in the bonds
+        aj: list[int]  # index of the 2nd atoms in the bonds
         names: list[str]  # name of the bonds
         ai, aj, names = self.get_bonds(bonds, atoms)
         self.mk_df(ai, aj, names, atoms)
@@ -201,8 +201,8 @@ class BondsInfo:
         """return bonds dataframe to make bonds dataframe"""
         columns: list[str]  # Columns of the bonds wild
         columns = ['ai', 'aj', 'funct', 'r', 'k']
-        ai: list[str] = []  # index of the 1st atoms in the bonds
-        aj: list[str] = []  # index of the 2nd atoms in the bonds
+        ai: list[int] = []  # index of the 1st atoms in the bonds
+        aj: list[int] = []  # index of the 2nd atoms in the bonds
         names: list[str] = []  # name of the bonds
         for line in bonds:
             if line.startswith(';'):  # line start with ';' are commets&header
@@ -216,14 +216,14 @@ class BondsInfo:
                              f'itp file\n{bcolors.ENDC}')
             else:
                 l_line = free_char_line(line)
-                ai.append(l_line[0])
-                aj.append(l_line[1])
+                ai.append(int(l_line[0]))
+                aj.append(int(l_line[1]))
                 names.append(l_line[3])
         return ai, aj, names
 
     def mk_df(self,
-              ai: list[str],  # index of the 1st atom in the bonds
-              aj: list[str],  # index of the 2nd atom in the bonds
+              ai: list[int],  # index of the 1st atom in the bonds
+              aj: list[int],  # index of the 2nd atom in the bonds
               names: list[str],  # names of the bonds form bonds section
               atoms: pd.DataFrame  # atoms df from AtomsInfo to cehck the name
               ) -> None:
@@ -235,7 +235,8 @@ class BondsInfo:
         df['name'] = names
         df['cmt'] = ['#' for _ in ai]
         df['typ'] = self.get_type(names)
-        print(df)
+        self.check_names(df, atoms)
+        # print(df)
 
     def get_type(self,
                  lst: list[str]  # list to get the number of distenguished ones
@@ -247,6 +248,23 @@ class BondsInfo:
         types: list[int]  # types to return
         types = [type_dict[item] for item in lst]
         return types
+
+    def check_names(self,
+                    df: pd.DataFrame,  # Df to check its names column
+                    atoms: pd.DataFrame  # Df source (mostly atoms df)
+                    ) -> None:
+        """ checks the names column in the source file with comparing it
+        with names from the atoms dataframe name column for each atom"""
+        ai_name: list[str]  # name of the 1st atom from the list
+        aj_name: list[str]  # name of the 2nd atom from the list
+        ai_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['ai']]
+        aj_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
+                   for item in df['aj']]
+        names: list[str] = [f'{i}-{j}' for i, j in zip(ai_name, aj_name)]
+        if list(df['name']) != names:
+            exit(f'{bcolors.FAIL}\tError! in the bonds and atoms name!'
+                 f'{bcolors.ENDC}')
 
 
 if __name__ == '__main__':
