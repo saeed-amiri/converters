@@ -181,7 +181,18 @@ class BondsInfo:
                  atoms: pd.DataFrame  # atoms df from AtomsInfo to get names
                  ) -> None:
         """get the bonds infos"""
-        self.get_bonds(bonds, atoms)
+        self.mk_bonds_df(bonds, atoms)
+
+    def mk_bonds_df(self,
+                    bonds: list[str],  # lines of bonds section
+                    atoms: pd.DataFrame  # atoms df from AtomInfo
+                    ) -> None:
+        """call all the methods to make the bonds DataFrame"""
+        ai: list[str]  # index of the 1st atoms in the bonds
+        aj: list[str]  # index of the 2nd atoms in the bonds
+        names: list[str]  # name of the bonds
+        ai, aj, names = self.get_bonds(bonds, atoms)
+        self.mk_df(ai, aj, names, atoms)
 
     def get_bonds(self,
                   bonds: list[str],  # lines of bonds section read by Itp class
@@ -208,7 +219,20 @@ class BondsInfo:
                 ai.append(l_line[0])
                 aj.append(l_line[1])
                 names.append(l_line[3])
-        pprint(names)
+        return ai, aj, names
+
+    def mk_df(self,
+              ai: list[str],  # index of the 1st atom in the bonds
+              aj: list[str],  # index of the 2nd atom in the bonds
+              names: list[str],  # names of the bonds form bonds section
+              atoms: pd.DataFrame  # atoms df from AtomsInfo to cehck the name
+              ) -> None:
+        """make DataFrame and check if they are same as atoms name"""
+        df: pd.DataFrame  # to save the bonds_df
+        df = pd.DataFrame(columns=['ai', 'aj', 'typ', 'cmt', 'name'])
+        df['ai'] = ai
+        df['aj'] = aj
+        df['name'] = names
 
 
 if __name__ == '__main__':
