@@ -104,7 +104,7 @@ class Itp:
                 if not line:
                     break
         atom = AtomsInfo(atoms_info)
-        bond = BondsInfo(atoms=atom.df, bonds=bonds_info)
+        bond = BondsInfo(atoms=atom.Atoms_df, bonds=bonds_info)
 
 
 class AtomsInfo:
@@ -112,7 +112,7 @@ class AtomsInfo:
     def __init__(self,
                  atoms: list[str]  # lines read by Itp class
                  ) -> None:
-        self.df = self.get_atoms_info(atoms)
+        self.Atoms_df = self.get_atoms_info(atoms)
 
     def get_atoms_info(self,
                        atoms: list[str]  # Lines of the atoms' section
@@ -192,7 +192,7 @@ class BondsInfo:
         aj: list[int]  # index of the 2nd atoms in the bonds
         names: list[str]  # name of the bonds
         ai, aj, names = self.get_bonds(bonds, atoms)
-        self.mk_df(ai, aj, names, atoms)
+        self.Bonds_df = self.mk_df(ai, aj, names, atoms)
 
     def get_bonds(self,
                   bonds: list[str],  # lines of bonds section read by Itp class
@@ -236,7 +236,7 @@ class BondsInfo:
         df['cmt'] = ['#' for _ in ai]
         df['typ'] = self.get_type(names)
         self.check_names(df, atoms)
-        # print(df)
+        return df
 
     def get_type(self,
                  lst: list[str]  # list to get the number of distenguished ones
