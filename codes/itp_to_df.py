@@ -270,6 +270,7 @@ class BondsInfo:
         df['cmt'] = ['#' for _ in ai]
         df['typ'] = get_type(names)
         self.check_names(df, atoms)
+        df.index += 1
         return df
 
     def check_names(self,
@@ -356,6 +357,7 @@ class AnglesInfo:
         df['cmt'] = ['#' for _ in ai]
         df['typ'] = get_type(names)
         self.check_names(df, atoms)
+        df.index += 1
         return df
 
     def check_names(self,
@@ -452,6 +454,7 @@ class DihedralsInfo:
         df['cmt'] = ['#' for _ in ai]
         df['typ'] = get_type(names)
         self.check_names(df, atoms)
+        df.index += 1
         return df
 
     def check_names(self,
