@@ -1,6 +1,8 @@
+from pprint import pprint
 import pandas as pd
 import sys
 import read_lmp_data as rdlmp
+from colors_text import TextColor as bcolors
 
 
 class Doc:
@@ -19,7 +21,10 @@ class Doc:
 def get_type(lst: list[str]  # list to get the number of distenguished ones
              ) -> list[int]:  # types' index
     """make type based on the unique items in the lst"""
-    type_set: set[str] = set(lst)  # eleminate the repeated names
+    # eleminate the repeated names
+    seen: set[str] = set()
+    seen_add = seen.add
+    type_set = [x for x in lst if not (x in seen or seen_add(x))]
     type_dict: dict[str, int]  # to make a list with type index
     type_dict = {item: i+1 for i, item in enumerate(type_set)}
     types: list[int]  # types to return
@@ -32,7 +37,8 @@ class CleanData:
     def __init__(self,
                  fname: str  # Name of the input file
                  ) -> None:
-        raw_data: rdlmp.ReadData  # Raw data read by rdlmp
+        print(f'{bcolors.OKCYAN}{self.__class__.__name__}:\n'
+              f'\tCleaning: `{fname}`\n')
         self.raw_data = rdlmp.ReadData(fname)
         self.clean_data()
 
@@ -72,13 +78,13 @@ class CleanData:
                     self.raw_data.Atoms_df['atom_id'] == item
                     ]['name'][item]
                 for item in self.raw_data.Bonds_df['ai']
-                  ]
+                ]
         aj_name = [
                 self.raw_data.Atoms_df.loc[
                     self.raw_data.Atoms_df['atom_id'] == item
                     ]['name'][item]
                 for item in self.raw_data.Bonds_df['aj']
-                  ]
+                ]
         bonds = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
         return bonds
 
