@@ -39,6 +39,7 @@ class CleanData:
     def clean_data(self) -> None:
         """call all the methods"""
         self.Bonds_df: pd.DataFrame = self.get_bonds()  # Bonds df to write
+        self.Angles_df: pd.DataFrame = self.get_angles()  # Bonds df to write
 
     def get_bonds(self) -> pd.DataFrame:  # Bonds DataFrame for writing
         """correct the name and type of the bonds"""
@@ -51,18 +52,18 @@ class CleanData:
         df: pd.DataFrame  # Bonds df to write out
         df = pd.DataFrame(columns=columns)
         df['typ'] = types
+        df.index += 1  # Since the raw data increased one
         df['ai'] = self.raw_data.Bonds_df['ai']
         df['aj'] = self.raw_data.Bonds_df['aj']
         df['name'] = names
         df['cmt'] = ['#' for _ in df.index]
-        df.index += 1
         return df
 
     def bonds_name(self) -> list[str]:  # Name of the bonds
         """return name of the bonds by making from Atoms_df name"""
         ai_name: list[str]  # 1st atoms names
         aj_name: list[str]  # 2nd atoms names
-        names: list[str]  # Bonds names
+        bonds: list[str]  # Bonds names
         ai_name = [
                 self.raw_data.Atoms_df.loc[
                     self.raw_data.Atoms_df['atom_id'] == item
@@ -77,6 +78,52 @@ class CleanData:
                   ]
         bonds = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
         return bonds
+
+    def get_angles(self) -> pd.DataFrame:  # Angles DataFrame for writing
+        """correct the name and type of the angles"""
+        names: list[str]  # Angles names
+        types: list[int]  # Angles type from names
+        names = self.angles_name()
+        types = get_type(names)
+        columns: list[str]  # DataFrame columns for angles in LAMMPS
+        columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
+        df: pd.DataFrame  # Angles df to write out
+        df = pd.DataFrame(columns=columns)
+        df['typ'] = types
+        df.index += 1   # Since the raw data increased one
+        df['ai'] = self.raw_data.Angles_df['ai']
+        df['aj'] = self.raw_data.Angles_df['aj']
+        df['ak'] = self.raw_data.Angles_df['ak']
+        df['name'] = names
+        df['cmt'] = ['#' for _ in df.index]
+        return df
+
+    def angles_name(self) -> list[str]:  # Name of the angles
+        """return name of the angles by making from Atoms_df name"""
+        ai_name: list[str]  # 1st atoms names
+        aj_name: list[str]  # 2nd atoms names
+        ak_name: list[str]  # 2nd atoms names
+        angles: list[str]  # Angles names
+        ai_name = [
+                self.raw_data.Atoms_df.loc[
+                    self.raw_data.Atoms_df['atom_id'] == item
+                    ]['name'][item]
+                for item in self.raw_data.Angles_df['ai']
+                  ]
+        aj_name = [
+                self.raw_data.Atoms_df.loc[
+                    self.raw_data.Atoms_df['atom_id'] == item
+                    ]['name'][item]
+                for item in self.raw_data.Angles_df['aj']
+                  ]
+        ak_name = [
+                self.raw_data.Atoms_df.loc[
+                    self.raw_data.Atoms_df['atom_id'] == item
+                    ]['name'][item]
+                for item in self.raw_data.Angles_df['ak']
+                  ]
+        angles = [f'{i}_{j}_{k}' for i, j, k in zip(ai_name, aj_name, ak_name)]
+        return angles
 
 
 if __name__ == '__main__':
