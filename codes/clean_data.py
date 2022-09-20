@@ -38,8 +38,11 @@ class CleanData:
 
     def clean_data(self) -> None:
         """call all the methods"""
+        self.Atoms_df = self.raw_data.Atoms_df
         self.Bonds_df: pd.DataFrame = self.get_bonds()  # Bonds df to write
-        self.Angles_df: pd.DataFrame = self.get_angles()  # Bonds df to write
+        self.Angles_df: pd.DataFrame = self.get_angles()  # Angles df to write
+        self.Dihdrals_df: pd.DataFrame = self.get_dihedrals()  # Dihedrals df
+        print(self.Dihdrals_df)
 
     def get_bonds(self) -> pd.DataFrame:  # Bonds DataFrame for writing
         """correct the name and type of the bonds"""
@@ -102,7 +105,7 @@ class CleanData:
         """return name of the angles by making from Atoms_df name"""
         ai_name: list[str]  # 1st atoms names
         aj_name: list[str]  # 2nd atoms names
-        ak_name: list[str]  # 2nd atoms names
+        ak_name: list[str]  # 3rd atoms names
         angles: list[str]  # Angles names
         ai_name = [
                 self.raw_data.Atoms_df.loc[
@@ -124,6 +127,62 @@ class CleanData:
                   ]
         angles = [f'{i}_{j}_{k}' for i, j, k in zip(ai_name, aj_name, ak_name)]
         return angles
+
+    def get_dihedrals(self) -> pd.DataFrame:  # Dihedrals DataFrame for writing
+        """correct the name and type of the dihedrals"""
+        names: list[str]  # Dihedrals names
+        types: list[int]  # Dihedrals type from names
+        names = self.dihedrals_name()
+        types = get_type(names)
+        columns: list[str]  # DataFrame columns for dihedrals in LAMMPS
+        columns = ['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name']
+        df: pd.DataFrame  # Dihedrals df to write out
+        df = pd.DataFrame(columns=columns)
+        df['typ'] = types
+        df.index += 1   # Since the raw data increased one
+        df['ai'] = self.raw_data.Dihedrals_df['ai']
+        df['aj'] = self.raw_data.Dihedrals_df['aj']
+        df['ak'] = self.raw_data.Dihedrals_df['ak']
+        df['ah'] = self.raw_data.Dihedrals_df['ah']
+        df['name'] = names
+        df['cmt'] = ['#' for _ in df.index]
+        return df
+
+    def dihedrals_name(self) -> list[str]:  # Name of the dihedrals
+        """return name of the dihedrals by making from Atoms_df name"""
+        ai_name: list[str]  # 1st atoms names
+        aj_name: list[str]  # 2nd atoms names
+        ak_name: list[str]  # 3rd atoms names
+        ah_name: list[str]  # 4th atoms names
+        dihedrals: list[str]  # Dihedrals names
+        ai_name = [
+                self.raw_data.Atoms_df.loc[
+                    self.raw_data.Atoms_df['atom_id'] == item
+                    ]['name'][item]
+                for item in self.raw_data.Dihedrals_df['ai']
+                  ]
+        aj_name = [
+                self.raw_data.Atoms_df.loc[
+                    self.raw_data.Atoms_df['atom_id'] == item
+                    ]['name'][item]
+                for item in self.raw_data.Dihedrals_df['aj']
+                  ]
+        ak_name = [
+                self.raw_data.Atoms_df.loc[
+                    self.raw_data.Atoms_df['atom_id'] == item
+                    ]['name'][item]
+                for item in self.raw_data.Dihedrals_df['ak']
+                  ]
+        ah_name = [
+                self.raw_data.Atoms_df.loc[
+                    self.raw_data.Atoms_df['atom_id'] == item
+                    ]['name'][item]
+                for item in self.raw_data.Dihedrals_df['ah']
+                  ]
+        dihedrals = [
+            f'{i}_{j}_{k}_{h}' for i, j, k, h in
+            zip(ai_name, aj_name, ak_name, ah_name)]
+        return dihedrals
 
 
 if __name__ == '__main__':
