@@ -38,11 +38,11 @@ class CleanData:
 
     def clean_data(self) -> None:
         """call all the methods"""
-        self.Atoms_df = self.raw_data.Atoms_df
+        self.Atoms_df: pd.DataFrame = self.raw_data.Atoms_df
         self.Bonds_df: pd.DataFrame = self.get_bonds()  # Bonds df to write
         self.Angles_df: pd.DataFrame = self.get_angles()  # Angles df to write
         self.Dihdrals_df: pd.DataFrame = self.get_dihedrals()  # Dihedrals df
-        print(self.Dihdrals_df)
+        self.Masses_df: pd.DataFrame = self.raw_data.Masses_df
 
     def get_bonds(self) -> pd.DataFrame:  # Bonds DataFrame for writing
         """correct the name and type of the bonds"""
