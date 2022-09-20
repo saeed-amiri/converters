@@ -211,7 +211,7 @@ class WriteLmp(GetData):
             columns = ['typ', 'ai', 'aj', 'cmt', 'name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
-            self.write_bonds_infos(df)
+            self.write_BoAnDi_infos(df, 'Bonds')
         else:
             print(f'{bcolors.WARNING}'
                   f'\tWARNING: Bonds section is empty{bcolors.ENDC}\n')
@@ -224,6 +224,7 @@ class WriteLmp(GetData):
             columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
+            self.write_BoAnDi_infos(df, 'Angles')
         else:
             print(f'{bcolors.WARNING}'
                   f'\tWARNING: Angels section is empty{bcolors.ENDC}\n')
@@ -236,6 +237,7 @@ class WriteLmp(GetData):
             columns = ['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
+            self.write_BoAnDi_infos(df, 'Dihedrals')
         else:
             print(f'{bcolors.WARNING}'
                   f'\tWARNING: Dihedrals section is empty{bcolors.ENDC}\n')
@@ -261,21 +263,28 @@ class WriteLmp(GetData):
             f.write(f'\t\t\t]\n')
             f.write(f'}}\n')
     
-    def write_bonds_infos(self,
-                          df: pd.DataFrame) -> None:
-        """wrtie info about bonds"""
+    def write_BoAnDi_infos(self,
+                          df: pd.DataFrame,  # df to sort and write the info
+                          char: str  # Name of the section
+                          ) -> None:
+        """wrtie info about Bonds, Angles, Dihedrals"""
         jfile: str = f'{self.fname.split(".")[0]}.json'  # Output name
-        df1 = df.copy()  # to be sure!
+        columns: list[str]  # columns to keep
+        columns = ['typ', 'name']
+        df1: pd.DataFrame  # df to get data to write into file
+        df1 = pd.DataFrame(columns=columns)
+        df1['typ'] = df['typ']
+        df1['name'] = df['name']
         df1.index -= 1
         # Remove duplicate by adding True and False column
         m = ~pd.DataFrame(np.sort(df1[['name']], axis=1)).duplicated()        
         df1 = df1[m]
-        df1 = df1.drop(['ai', 'aj', 'cmt'], axis=1)
         df1 = df1.sort_values(by=['typ'], axis=0)
         with open(jfile, 'a') as f:
-            f.write(f'#{"Bonds info":<30}\n')
+            f.write(f'#{char} {"info":<30}\n')
             f.write(f'#{"id type name":<30}\n')
             df1.to_csv(f, sep='\t', index=False)
+            f.write(f'\n')
 
 
 
