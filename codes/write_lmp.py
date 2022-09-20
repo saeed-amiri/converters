@@ -96,7 +96,6 @@ class WriteLmp(GetData):
         with open(self.fname, 'w') as f:
             self.write_header(f)
             self.write_body(f)
-        self.write_comb_json()  # write json of combination
 
     def write_header(self, f: typing.TextIO) -> None:
         """write header of the file, including:
@@ -185,6 +184,7 @@ class WriteLmp(GetData):
             df.to_csv(f, sep=' ', index=False, columns=columns, header=None,
                       float_format='%.8f')
             f.write(f'\n')
+            self.write_comb_json()  # write json of combination
         else:
             exit(f'{bcolors.FAIL}{self.__class__.__name__}\n'
                  f'\tError: Atoms section is empty{bcolors.ENDC}\n')
@@ -211,6 +211,7 @@ class WriteLmp(GetData):
             columns = ['typ', 'ai', 'aj', 'cmt', 'name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
+            self.write_bonds_infos(df)
         else:
             print(f'{bcolors.WARNING}'
                   f'\tWARNING: Bonds section is empty{bcolors.ENDC}\n')
@@ -259,3 +260,22 @@ class WriteLmp(GetData):
             f.write(f'\t}}\n')
             f.write(f'\t\t\t]\n')
             f.write(f'}}\n')
+    
+    def write_bonds_infos(self,
+                          df: pd.DataFrame) -> None:
+        """wrtie info about bonds"""
+        jfile: str = f'{self.fname.split(".")[0]}.json'  # Output name
+        df1 = df.copy()  # to be sure!
+        df1.index -= 1
+        # Remove duplicate by adding True and False column
+        m = ~pd.DataFrame(np.sort(df1[['name']], axis=1)).duplicated()        
+        df1 = df1[m]
+        df1 = df1.drop(['ai', 'aj', 'cmt'], axis=1)
+        df1 = df1.sort_values(by=['typ'], axis=0)
+        with open(jfile, 'a') as f:
+            f.write(f'#{"Bonds info":<30}\n')
+            f.write(f'#{"id type name":<30}\n')
+            df1.to_csv(f, sep='\t', index=False)
+
+
+
