@@ -38,14 +38,25 @@ class CleanData:
 
     def clean_data(self) -> None:
         """call all the methods"""
-        self.get_bonds()
+        self.Bonds_df: pd.DataFrame = self.get_bonds()  # Bonds df to write
 
-    def get_bonds(self) -> None:
+    def get_bonds(self) -> pd.DataFrame:  # Bonds DataFrame for writing
         """correct the name and type of the bonds"""
         names: list[str]  # Bonds names
         types: list[int]  # Bonds type from names
         names = self.bonds_name()
         types = get_type(names)
+        columns: list[str]  # DataFrame columns for bonds in LAMMPS
+        columns = ['typ', 'ai', 'aj', 'cmt', 'name']
+        df: pd.DataFrame  # Bonds df to write out
+        df = pd.DataFrame(columns=columns)
+        df['typ'] = types
+        df['ai'] = self.raw_data.Bonds_df['ai']
+        df['aj'] = self.raw_data.Bonds_df['aj']
+        df['name'] = names
+        df['cmt'] = ['#' for _ in df.index]
+        df.index += 1
+        return df
 
     def bonds_name(self) -> list[str]:  # Name of the bonds
         """return name of the bonds by making from Atoms_df name"""
