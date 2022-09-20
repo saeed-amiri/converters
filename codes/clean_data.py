@@ -15,6 +15,18 @@ class Doc:
     """
 
 
+# A helper function needed by most of the classes to get types for LAMMPS
+def get_type(lst: list[str]  # list to get the number of distenguished ones
+             ) -> list[int]:  # types' index
+    """make type based on the unique items in the lst"""
+    type_set: set[str] = set(lst)  # eleminate the repeated names
+    type_dict: dict[str, int]  # to make a list with type index
+    type_dict = {item: i+1 for i, item in enumerate(type_set)}
+    types: list[int]  # types to return
+    types = [type_dict[item] for item in lst]
+    return types
+
+
 class CleanData:
     """read data and clean it"""
     def __init__(self,
@@ -30,9 +42,10 @@ class CleanData:
 
     def get_bonds(self) -> None:
         """correct the name and type of the bonds"""
-        name: list[str]  # Bonds names
-        name = self.bonds_name()
-        print(name)
+        names: list[str]  # Bonds names
+        types: list[int]  # Bonds type from names
+        names = self.bonds_name()
+        types = get_type(names)
 
     def bonds_name(self) -> list[str]:  # Name of the bonds
         """return name of the bonds by making from Atoms_df name"""
