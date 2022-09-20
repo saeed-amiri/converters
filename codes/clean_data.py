@@ -47,7 +47,7 @@ class CleanData:
         self.Atoms_df: pd.DataFrame = self.raw_data.Atoms_df
         self.Bonds_df: pd.DataFrame = self.get_bonds()  # Bonds df to write
         self.Angles_df: pd.DataFrame = self.get_angles()  # Angles df to write
-        self.Dihdrals_df: pd.DataFrame = self.get_dihedrals()  # Dihedrals df
+        self.Dihedrals_df: pd.DataFrame = self.get_dihedrals()  # Dihedrals df
         self.Masses_df: pd.DataFrame = self.raw_data.Masses_df
 
     def get_bonds(self) -> pd.DataFrame:  # Bonds DataFrame for writing
