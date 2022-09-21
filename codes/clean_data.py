@@ -97,17 +97,20 @@ class CleanData:
         types: list[int]  # Angles type from names
         names = self.angles_name()
         types = get_type(names)
+        angle_type: list[int]  # type of each angle with ABC=CBA
+        type_name: list[str]  # name of each type of each angle Angle
         angle_type, type_name = self.angles_type(names)
         columns: list[str]  # DataFrame columns for angles in LAMMPS
-        columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
+        columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name', 'type_name']
         df: pd.DataFrame  # Angles df to write out
         df = pd.DataFrame(columns=columns)
-        df['typ'] = types
+        df['typ'] = angle_type
         df.index += 1   # Since the raw data increased one
         df['ai'] = self.raw_data.Angles_df['ai']
         df['aj'] = self.raw_data.Angles_df['aj']
         df['ak'] = self.raw_data.Angles_df['ak']
         df['name'] = names
+        df['type_name']
         df['cmt'] = ['#' for _ in df.index]
         return df
 
