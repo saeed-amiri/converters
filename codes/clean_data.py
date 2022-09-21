@@ -97,7 +97,7 @@ class CleanData:
         types: list[int]  # Angles type from names
         names = self.angles_name()
         types = get_type(names)
-        self.angles_type(names)
+        angle_type, type_name = self.angles_type(names)
         columns: list[str]  # DataFrame columns for angles in LAMMPS
         columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
         df: pd.DataFrame  # Angles df to write out
@@ -189,13 +189,17 @@ class CleanData:
             except KeyError:
                 typ = angle_dict[item[::-1]]
             angle_type.append(typ)
-        type_name: dict[str, int] = {}  # name angles based on the types
+        name_dict: dict[str, int] = {}  # name angles based on the types
         for k, v in angle_dict.items():
             n = []
             for i in k.split('_'):
                 value = self.get_key(type_dict, int(i))
                 n.append(value)
-            type_name[v] = f'_'.join(n)
+            name_dict[v] = f'_'.join(n)
+        type_name: list[str] = []  # main name of each angle
+        for item in angle_type:
+            type_name.append(name_dict[item])
+        return angle_type, type_name
 
     # function to return key for any value
     def get_key(self,
