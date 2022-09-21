@@ -110,7 +110,7 @@ class CleanData:
         df['aj'] = self.raw_data.Angles_df['aj']
         df['ak'] = self.raw_data.Angles_df['ak']
         df['name'] = names
-        df['type_name']
+        df['type_name'] = type_name
         df['cmt'] = ['#' for _ in df.index]
         return df
 
@@ -198,7 +198,8 @@ class CleanData:
             for i in k.split('_'):
                 value = self.get_key(type_dict, int(i))
                 n.append(value)
-            name_dict[v] = f'_'.join(n)
+            name_dict[v] = f'({"_".join(n)})'
+            
         type_name: list[str] = []  # main name of each angle
         for item in angle_type:
             type_name.append(name_dict[item])
