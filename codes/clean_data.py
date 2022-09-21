@@ -97,7 +97,7 @@ class CleanData:
         types: list[int]  # Angles type from names
         names = self.angles_name()
         types = get_type(names)
-        angle_type: list[int]  # type of each angle with ABC=CBA
+        angle_type: tuple[list[int]]  # type of each angle with ABC=CBA
         type_name: list[str]  # name of each type of each angle Angle
         angle_type, type_name = self.angles_type(names)
         columns: list[str]  # DataFrame columns for angles in LAMMPS
@@ -143,18 +143,18 @@ class CleanData:
 
     def angles_type(self,
                     names: list[str]  # Names of the bonds
-                    ) -> list[int]:  # Type of the angles
+                    ) -> tuple[list[str], list[str]]:  # Type of the angles
         """make a correct type for angles
         Angle ABC is same as CBA
         Fixing this is complicated since it entirely depends on the
         names of the type of atoms in the Mass section.
         """
         # Remove digits from the name of the atoms:
-        tmp_name: list[list[str]]  # name of the bonds without digits
+        tmp_name: list[str]  # name of the bonds without digits
         tmp_name = [re.sub('\d+', '', item) for item in names]
         tmp_lst: list[list[str]] = [item.split('_') for item in tmp_name]
         # uniqe names after removing digits:
-        name_set: set[str]
+        name_set: list[typing.Any]  # set[str]
         name_set = self.seen_set(tmp_name)  # Remove the duplicates
         name_set = [item.split('_') for item in name_set]
         name_set = [item for sublist in name_set for item in sublist]
@@ -169,11 +169,11 @@ class CleanData:
         name_int: list[str]  # make a str list of int of types
         name_int = ['_'.join(item) for item in name_lst]
         # Get the uniqe type of all angles
-        seen: set[str] = set()
+        seen: set[frozenset[str]] = set()
         name_tup = [tuple([item]) for item in name_int]
         # name_tup = [item[0] for item in name_tup]
         # Make a list of each set of angles
-        t: list[str] = [
+        t: list[typing.Any] = [
             x for x in name_tup if frozenset(x) not in seen and
             not seen.add(frozenset(x))
             ]
@@ -184,7 +184,7 @@ class CleanData:
         angle_dict: dict[str, int]
         angle_dict = {item: v+1 for v, item in enumerate(t)}
         # List of types for each angle
-        angle_type: list[int] = []  # final list for each angle
+        angle_type: list[str] = []  # final list for each angle
         for item in name_int:
             typ: int  # index for each angle
             try:
@@ -192,17 +192,16 @@ class CleanData:
             except KeyError:
                 typ = angle_dict[item[::-1]]
             angle_type.append(typ)
-        name_dict: dict[str, int] = {}  # name angles based on the types
+        name_dict: dict[int, str] = {}  # name angles based on the types
         for k, v in angle_dict.items():
             n = []
             for i in k.split('_'):
                 value = self.get_key(type_dict, int(i))
                 n.append(value)
             name_dict[v] = f'({"_".join(n)})'
-            
         type_name: list[str] = []  # main name of each angle
         for item in angle_type:
-            type_name.append(name_dict[item])
+            type_name.append(str(name_dict[item]))
         return angle_type, type_name
 
     # function to return key for any value
