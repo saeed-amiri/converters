@@ -163,11 +163,11 @@ class CleanData:
         name_lst: list[list[str]]  # type of each set of angles
         name_lst = [[str(type_dict[i]) for i in item] for item in tmp_lst]
         # Make one list of all the angles with thier atom types
-        name_str: list[str]  # make a str list of int of types
-        name_str = ['_'.join(item) for item in name_lst]
+        name_int: list[str]  # make a str list of int of types
+        name_int = ['_'.join(item) for item in name_lst]
         # Get the uniqe type of all angles
         seen: set[str] = set()
-        name_tup = [tuple([item]) for item in name_str]
+        name_tup = [tuple([item]) for item in name_int]
         # name_tup = [item[0] for item in name_tup]
         # Make a list of each set of angles
         t: list[str] = [
@@ -175,22 +175,36 @@ class CleanData:
             not seen.add(frozenset(x))
             ]
         t = [list(item)[0] for item in t]  # make list of items
-        # remove replicates and reverse duplicated
-        t = list({l[::-1] if l[-1] < l[0] else l: l for l in t}.values())
+        # remove duplicates and reverse duplicated
+        t = list({i[::-1] if i[-1] < i[0] else i: i for i in t}.values())
         # Give a name to each uniqe set of angle
         angle_dict: dict[str, int]
         angle_dict = {item: v+1 for v, item in enumerate(t)}
         # List of types for each angle
-        angle_type: list[int] = [] # final list for each angle
-        for item in name_str:
-            typ: str 
+        angle_type: list[int] = []  # final list for each angle
+        for item in name_int:
+            typ: int  # index for each angle
             try:
                 typ = angle_dict[item]
             except KeyError:
                 typ = angle_dict[item[::-1]]
             angle_type.append(typ)
-        print(angle_type)
-# 
+        type_name: dict[str, int] = {}  # name angles based on the types
+        for k, v in angle_dict.items():
+            n = []
+            for i in k.split('_'):
+                value = self.get_key(type_dict, int(i))
+                n.append(value)
+            type_name[v] = f'_'.join(n)
+
+    # function to return key for any value
+    def get_key(self,
+                dic,
+                val):
+        for key, value in dic.items():
+            if val == value:
+                return key
+
     def seen_set(self,
                  lst: list[typing.Any]  # to drop duplicate with keping order
                  ) -> list[typing.Any]:
