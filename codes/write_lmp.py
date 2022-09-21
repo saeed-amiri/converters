@@ -221,7 +221,7 @@ class WriteLmp(GetData):
         if not df.empty:
             f.write(f'Angles\n')
             f.write(f'\n')
-            columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name']
+            columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name', 'type_name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
             self.write_BoAnDi_infos(df, 'Angles')
