@@ -147,7 +147,7 @@ class CleanData:
         """
         # Remove digits from the name of the atoms:
         tmp_name: list[list[str]]  # name of the bonds without digits
-        tmp_name = [re.sub("\d+", "", item) for item in names]
+        tmp_name = [re.sub('\d+', '', item) for item in names]
         tmp_lst: list[list[str]] = [item.split('_') for item in tmp_name]
         # uniqe names after removing digits:
         name_set: set[str]
@@ -179,7 +179,6 @@ class CleanData:
         angle_type = {item: v+1 for v, item in enumerate(t)}
         print(angle_type)
 
-
     def seen_set(self,
                  lst: list[typing.Any]  # to drop duplicate with keping order
                  ) -> list[typing.Any]:
@@ -188,7 +187,6 @@ class CleanData:
         seen: set[str] = set()
         seen_add = seen.add
         return [x for x in lst if not (x in seen or seen_add(x))]
-
 
     def get_dihedrals(self) -> pd.DataFrame:  # Dihedrals DataFrame for writing
         """correct the name and type of the dihedrals"""
