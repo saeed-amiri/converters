@@ -1,3 +1,4 @@
+import itertools
 from pprint import pprint
 import re
 import typing
@@ -166,19 +167,30 @@ class CleanData:
         name_str = ['_'.join(item) for item in name_lst]
         # Get the uniqe type of all angles
         seen: set[str] = set()
-        name_str = [tuple(item) for item in name_str]
+        name_tup = [tuple([item]) for item in name_str]
+        # name_tup = [item[0] for item in name_tup]
         # Make a list of each set of angles
         t: list[str] = [
-            x for x in name_str if frozenset(x) not in seen and
+            x for x in name_tup if frozenset(x) not in seen and
             not seen.add(frozenset(x))
             ]
-        t = [list(item) for item in t]
-        t = [''.join(item) for item in t]
+        t = [list(item)[0] for item in t]  # make list of items
+        # remove replicates and reverse duplicated
+        t = list({l[::-1] if l[-1] < l[0] else l: l for l in t}.values())
         # Give a name to each uniqe set of angle
-        angle_type: dict[str, int]
-        angle_type = {item: v+1 for v, item in enumerate(t)}
+        angle_dict: dict[str, int]
+        angle_dict = {item: v+1 for v, item in enumerate(t)}
+        # List of types for each angle
+        angle_type: list[int] = [] # final list for each angle
+        for item in name_str:
+            typ: str 
+            try:
+                typ = angle_dict[item]
+            except KeyError:
+                typ = angle_dict[item[::-1]]
+            angle_type.append(typ)
         print(angle_type)
-
+# 
     def seen_set(self,
                  lst: list[typing.Any]  # to drop duplicate with keping order
                  ) -> list[typing.Any]:
