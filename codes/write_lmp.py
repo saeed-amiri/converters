@@ -274,7 +274,10 @@ class WriteLmp(GetData):
         df1: pd.DataFrame  # df to get data to write into file
         df1 = pd.DataFrame(columns=columns)
         df1['typ'] = df['typ']
-        df1['name'] = df['name']
+        try:
+            df1['name'] = df['type_name']
+        except KeyError:
+            df1['name'] = df['name']
         df1.index -= 1
         # Remove duplicate by adding True and False column
         m = ~pd.DataFrame(np.sort(df1[['name']], axis=1)).duplicated()        
