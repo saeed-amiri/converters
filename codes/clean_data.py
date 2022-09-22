@@ -35,23 +35,6 @@ def get_type(lst: list[str]  # list to get the number of distenguished ones
     return types
 
 
-class CleanData:
-    """read data and clean it"""
-    def __init__(self,
-                 fname: str  # Name of the input file
-                 ) -> None:
-        print(f'{bcolors.OKCYAN}{self.__class__.__name__}:\n'
-              f'\tCleaning: `{fname}`\n')
-        self.raw_data = rdlmp.ReadData(fname)
-        self.clean_data()
-
-    def clean_data(self) -> None:
-        """call all the methods"""
-        self.Atoms_df: pd.DataFrame = self.raw_data.Atoms_df
-        self.Bonds_df: pd.DataFrame = self.get_bonds()  # Bonds df to write
-        self.Masses_df: pd.DataFrame = self.raw_data.Masses_df
-
-
 class Bonds:
     """clean the bonds section with the right names and types"""
     def __init__(self,
@@ -66,17 +49,20 @@ class Bonds:
         names: list[str]  # Bonds names
         types: list[int]  # Bonds type from names
         names = self.bonds_name(raw_data)
-        types = get_type(names)
+        typ = Types(names)
+        types = typ.types
+        types_name = typ.types_name
         columns: list[str]  # DataFrame columns for bonds in LAMMPS
-        columns = ['typ', 'ai', 'aj', 'cmt', 'name']
+        columns = ['typ', 'ai', 'aj', 'cmt', 'name', 'type_name']
         df: pd.DataFrame  # Bonds df to write out
         df = pd.DataFrame(columns=columns)
         df['typ'] = types
         df.index += 1  # Since the raw data increased one
         df['ai'] = raw_data.Bonds_df['ai']
         df['aj'] = raw_data.Bonds_df['aj']
-        df['name'] = names
         df['cmt'] = ['#' for _ in df.index]
+        df['name'] = names
+        df['type_name'] = types_name
         return df
 
     def bonds_name(self,
@@ -97,7 +83,7 @@ class Bonds:
                 for item in raw_data.Bonds_df['aj']
                 ]
         bonds = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
-        return bonds
+        return bonds    
 
 
 class Angles:
@@ -112,12 +98,11 @@ class Angles:
                    ) -> pd.DataFrame:  # Angles DataFrame for writing
         """correct the name and type of the angles"""
         names: list[str]  # Angles names
-        types: list[int]  # Angles type from names
         names = self.angles_name(raw_data)
-        types = get_type(names)
         angle_type: tuple[list[int]]  # type of each angle with ABC=CBA
         type_name: list[str]  # name of each type of each angle Angle
-        angle_type, type_name = self.angles_type(names)
+        typ = Types(names)
+        angle_type, type_name = typ.types, typ.types_name
         columns: list[str]  # DataFrame columns for angles in LAMMPS
         columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name', 'type_name']
         df: pd.DataFrame  # Angles df to write out
@@ -158,86 +143,6 @@ class Angles:
         angles = [f'{i}_{j}_{k}' for i, j, k in zip(ai_name, aj_name, ak_name)]
         return angles
 
-    def angles_type(self,
-                    names: list[str]  # Names of the bonds
-                    ) -> tuple[list[str], list[str]]:  # Type of the angles
-        """make a correct type for angles
-        Angle ABC is same as CBA
-        Fixing this is complicated since it entirely depends on the
-        names of the type of atoms in the Mass section.
-        """
-        # Remove digits from the name of the atoms:
-        tmp_name: list[str]  # name of the bonds without digits
-        tmp_name = [re.sub('\d+', '', item) for item in names]
-        tmp_lst: list[list[str]] = [item.split('_') for item in tmp_name]
-        # uniqe names after removing digits:
-        name_set: list[typing.Any]  # set[str]
-        name_set = self.seen_set(tmp_name)  # Remove the duplicates
-        name_set = [item.split('_') for item in name_set]
-        name_set = [item for sublist in name_set for item in sublist]
-        type_set = self.seen_set(name_set)  # Final set of uniqes atoms
-        # Set an index to each atom:
-        type_dict: dict[str, int]  # dict for name and type
-        type_dict = {item: v+1 for v, item in enumerate(type_set)}
-        # new type for all sets of angles
-        name_lst: list[list[str]]  # type of each set of angles
-        name_lst = [[str(type_dict[i]) for i in item] for item in tmp_lst]
-        # Make one list of all the angles with thier atom types
-        name_int: list[str]  # make a str list of int of types
-        name_int = ['_'.join(item) for item in name_lst]
-        # Get the uniqe type of all angles
-        seen: set[frozenset[str]] = set()
-        name_tup = [tuple([item]) for item in name_int]
-        # name_tup = [item[0] for item in name_tup]
-        # Make a list of each set of angles
-        t: list[typing.Any] = [
-            x for x in name_tup if frozenset(x) not in seen and
-            not seen.add(frozenset(x))
-            ]
-        t = [list(item)[0] for item in t]  # make list of items
-        # remove duplicates and reverse duplicated
-        t = list({i[::-1] if i[-1] < i[0] else i: i for i in t}.values())
-        # Give a name to each uniqe set of angle
-        angle_dict: dict[str, int]
-        angle_dict = {item: v+1 for v, item in enumerate(t)}
-        # List of types for each angle
-        angle_type: list[str] = []  # final list for each angle
-        for item in name_int:
-            typ: int  # index for each angle
-            try:
-                typ = angle_dict[item]
-            except KeyError:
-                typ = angle_dict[item[::-1]]
-            angle_type.append(typ)
-        name_dict: dict[int, str] = {}  # name angles based on the types
-        for k, v in angle_dict.items():
-            n = []
-            for i in k.split('_'):
-                value = self.get_key(type_dict, int(i))
-                n.append(value)
-            name_dict[v] = f'({"_".join(n)})'
-        type_name: list[str] = []  # main name of each angle
-        for item in angle_type:
-            type_name.append(str(name_dict[item]))
-        return angle_type, type_name
-
-    # function to return key for any value
-    def get_key(self,
-                dic,
-                val):
-        for key, value in dic.items():
-            if val == value:
-                return key
-
-    def seen_set(self,
-                 lst: list[typing.Any]  # to drop duplicate with keping order
-                 ) -> list[typing.Any]:
-        """remove duplicated item with keeping order of them in the
-        main list"""
-        seen: set[str] = set()
-        seen_add = seen.add
-        return [x for x in lst if not (x in seen or seen_add(x))]
-
 
 class Dihedrals:
     """set the right names and types for dihedrals section"""
@@ -252,7 +157,7 @@ class Dihedrals:
         """correct the name and type of the dihedrals"""
         names: list[str]  # Dihedrals names
         types: list[int]  # Dihedrals type from names
-        names = self.dihedrals_name()
+        names = self.dihedrals_name(raw_data)
         types = get_type(names)
         columns: list[str]  # DataFrame columns for dihedrals in LAMMPS
         columns = ['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name']
@@ -302,6 +207,119 @@ class Dihedrals:
             zip(ai_name, aj_name, ak_name, ah_name)]
         return dihedrals
 
+
+class Types:
+    """class to return right names and types"""
+    def __init__(self,
+                 names: list[str]  # Names to get the types based on them
+                 ) -> None:
+        self.types: list[int]  # types to set to the system
+        self.types_name: list[str]  # Names of the types NOT names
+        self.types, self.types_name = self.get_types(names)
+
+    def get_types(self,
+                    names: list[str]  # Names of the bonds
+                    ) -> tuple[list[str], list[str]]:  # Type of the angles
+        """make a correct type for angles
+        Angle ABC is same as CBA
+        Fixing this is complicated since it entirely depends on the
+        names of the type of atoms in the Mass section.
+        """
+        # Remove digits from the name of the atoms:
+        tmp_name: list[str]  # name of the bonds without digits
+        tmp_name = [re.sub('\d+', '', item) for item in names]
+        tmp_lst: list[list[str]] = [item.split('_') for item in tmp_name]
+        # uniqe names after removing digits:
+        name_set: list[typing.Any]  # set[str]
+        name_set = self.seen_set(tmp_name)  # Remove the duplicates
+        name_set = [item.split('_') for item in name_set]
+        name_set = [item for sublist in name_set for item in sublist]
+        type_set = self.seen_set(name_set)  # Final set of uniqes atoms
+        # Set an index to each atom:
+        type_dict: dict[str, int]  # dict for name and type
+        type_dict = {item: v+1 for v, item in enumerate(type_set)}
+        # new type for all sets of angles
+        name_lst: list[list[str]]  # type of each set of angles
+        name_lst = [[str(type_dict[i]) for i in item] for item in tmp_lst]
+        # Make one list of all the angles with thier atom types
+        name_int: list[str]  # make a str list of int of types
+        name_int = ['_'.join(item) for item in name_lst]
+        # Get the uniqe type of all angles
+        seen: set[frozenset[str]] = set()
+        name_tup = [tuple([item]) for item in name_int]
+        # name_tup = [item[0] for item in name_tup]
+        # Make a list of each set of angles
+        t: list[typing.Any] = [
+            x for x in name_tup if frozenset(x) not in seen and
+            not seen.add(frozenset(x))
+            ]
+        t = [list(item)[0] for item in t]  # make list of items
+        # remove duplicates and reverse duplicated
+        t = list({i[::-1] if i[-1] < i[0] else i: i for i in t}.values())
+        # Give a name to each uniqe set of names
+        angle_dict: dict[str, int]
+        angle_dict = {item: v+1 for v, item in enumerate(t)}
+        # List of types for each angle
+        final_types: list[str] = []  # final list for each types
+        for item in name_int:
+            typ: int  # index for each angle
+            try:
+                typ = angle_dict[item]
+            except KeyError:
+                typ = angle_dict[item[::-1]]
+            final_types.append(typ)
+        name_dict: dict[int, str] = {}  # names based on the types
+        for k, v in angle_dict.items():
+            n = []
+            for i in k.split('_'):
+                value = self.get_key(type_dict, int(i))
+                n.append(value)
+            name_dict[v] = f'({"_".join(n)})'
+        type_name: list[str] = []  # main name of each set in names
+        for item in final_types:
+            type_name.append(str(name_dict[item]))
+        return final_types, type_name
+
+    # function to return key for any value
+    def get_key(self,
+                dic,
+                val):
+        for key, value in dic.items():
+            if val == value:
+                return key
+
+    def seen_set(self,
+                 lst: list[typing.Any]  # to drop duplicate with keping order
+                 ) -> list[typing.Any]:
+        """remove duplicated item with keeping order of them in the
+        main list"""
+        seen: set[str] = set()
+        seen_add = seen.add
+        return [x for x in lst if not (x in seen or seen_add(x))]
+
+
+class CleanData(Bonds,  # To get Bonds_df to write into files
+                Angles,  # To get Angles_df to write into files
+                Dihedrals  # To get Dihedrals_df to write into files
+                ):
+    """read data and clean it"""
+    def __init__(self,
+                 fname: str  # Name of the input file
+                 ) -> None:
+        print(f'{bcolors.OKCYAN}{self.__class__.__name__}:\n'
+              f'\tCleaning: `{fname}`\n')
+        raw_data = rdlmp.ReadData(fname)
+        Bonds.__init__(self, raw_data)
+        Angles.__init__(self, raw_data)
+        Dihedrals.__init__(self, raw_data)
+        self.clean_data(raw_data)
+
+    def clean_data(self,
+                   raw_data  # Data read by read_lmp_data scripts
+                   ) -> None:
+        """call all the methods"""
+        self.Atoms_df: pd.DataFrame = raw_data.Atoms_df
+        self.Masses_df: pd.DataFrame = raw_data.Masses_df
 
 if __name__ == '__main__':
     fname = sys.argv[1]
