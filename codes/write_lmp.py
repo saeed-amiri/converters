@@ -208,7 +208,7 @@ class WriteLmp(GetData):
         if not df.empty:
             f.write(f'Bonds\n')
             f.write(f'\n')
-            columns = ['typ', 'ai', 'aj', 'cmt', 'name']
+            columns = ['typ', 'ai', 'aj', 'cmt', 'name', 'type_name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
             self.write_BoAnDi_infos(df, 'Bonds')
@@ -234,7 +234,8 @@ class WriteLmp(GetData):
         if not df.empty:
             f.write(f'Dihedrals\n')
             f.write(f'\n')
-            columns = ['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name']
+            columns = ['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name',
+                       'type_name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
             self.write_BoAnDi_infos(df, 'Dihedrals')
@@ -262,11 +263,11 @@ class WriteLmp(GetData):
             f.write(f'\t}}\n')
             f.write(f'\t\t\t]\n')
             f.write(f'}}\n')
-    
+
     def write_BoAnDi_infos(self,
-                          df: pd.DataFrame,  # df to sort and write the info
-                          char: str  # Name of the section
-                          ) -> None:
+                           df: pd.DataFrame,  # df to sort and write the info
+                           char: str  # Name of the section
+                           ) -> None:
         """wrtie info about Bonds, Angles, Dihedrals"""
         jfile: str = f'{self.fname.split(".")[0]}.json'  # Output name
         columns: list[str]  # columns to keep
@@ -280,7 +281,7 @@ class WriteLmp(GetData):
             df1['name'] = df['name']
         df1.index -= 1
         # Remove duplicate by adding True and False column
-        m = ~pd.DataFrame(np.sort(df1[['name']], axis=1)).duplicated()        
+        m = ~pd.DataFrame(np.sort(df1[['name']], axis=1)).duplicated()
         df1 = df1[m]
         df1 = df1.sort_values(by=['typ'], axis=0)
         with open(jfile, 'a') as f:
@@ -288,6 +289,3 @@ class WriteLmp(GetData):
             f.write(f'#{"id type name":<30}\n')
             df1.to_csv(f, sep='\t', index=False)
             f.write(f'\n')
-
-
-
