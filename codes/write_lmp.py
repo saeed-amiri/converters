@@ -96,6 +96,7 @@ class WriteLmp(GetData):
         with open(self.fname, 'w') as f:
             self.write_header(f)
             self.write_body(f)
+        self.write_comb_json()  # write json of combination
 
     def write_header(self, f: typing.TextIO) -> None:
         """write header of the file, including:
@@ -108,6 +109,7 @@ class WriteLmp(GetData):
         self.write_numbers(f)
         self.write_box(f)
         self.write_masses(self.obj.Masses_df, f)
+
 
     def write_body(self, f: typing.TextIO) -> None:
         """write the body of the data file, including:
@@ -184,7 +186,6 @@ class WriteLmp(GetData):
             df.to_csv(f, sep=' ', index=False, columns=columns, header=None,
                       float_format='%.8f')
             f.write(f'\n')
-            self.write_comb_json()  # write json of combination
         else:
             exit(f'{bcolors.FAIL}{self.__class__.__name__}\n'
                  f'\tError: Atoms section is empty{bcolors.ENDC}\n')
@@ -211,7 +212,7 @@ class WriteLmp(GetData):
             columns = ['typ', 'ai', 'aj', 'cmt', 'name', 'type_name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
-            self.write_BoAnDi_infos(df, 'Bonds')
+            self.write_BoAnDi_infos(df, 'bonds')
         else:
             print(f'{bcolors.WARNING}'
                   f'\tWARNING: Bonds section is empty{bcolors.ENDC}\n')
@@ -224,7 +225,7 @@ class WriteLmp(GetData):
             columns = ['typ', 'ai', 'aj', 'ak', 'cmt', 'name', 'type_name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
-            self.write_BoAnDi_infos(df, 'Angles')
+            self.write_BoAnDi_infos(df, 'angles')
         else:
             print(f'{bcolors.WARNING}'
                   f'\tWARNING: Angels section is empty{bcolors.ENDC}\n')
@@ -238,7 +239,7 @@ class WriteLmp(GetData):
                        'type_name']
             df.to_csv(f, sep=' ', index=True, columns=columns, header=None)
             f.write(f'\n')
-            self.write_BoAnDi_infos(df, 'Dihedrals')
+            self.write_BoAnDi_infos(df, 'dihedrals')
         else:
             print(f'{bcolors.WARNING}'
                   f'\tWARNING: Dihedrals section is empty{bcolors.ENDC}\n')
@@ -248,6 +249,10 @@ class WriteLmp(GetData):
         analysing"""
         df: pd.DataFrame = self.obj.Masses_df.copy()
         df.drop(['cmt'], axis=1, inplace=True)
+        # Adding needed section to be fill manualy
+        df['sigma'] = ''
+        df['epsilon'] = ''
+        df['r_cut'] = ''
         df.index += 1
         jfile: str = f'{self.fname.split(".")[0]}.json'  # Output name
         df_dict: dict[typing.Any, list[typing.Any]]
@@ -259,9 +264,17 @@ class WriteLmp(GetData):
             f.write(f'\t\t"file": "{self.fname}",\n')
             f.write(f'\t\t"atoms": \n')
             f.write(f'\t\t{json.dumps(df_dict, indent = 4)}')
-            f.write(f'\n')
+            f.write(f',\n')
+            f.write(f'\t\t"bonds": \n')
+            f.write(f'\t\t{json.dumps(self.Bonds_param, indent = 4)}')
+            f.write(f',\n')
+            f.write(f'\t\t"angles": \n')
+            f.write(f'\t\t{json.dumps(self.Angles_param, indent = 4)}')
+            f.write(f',\n')
+            f.write(f'\t\t"dihedrals": \n')
+            f.write(f'\t\t{json.dumps(self.Dihedrals_param, indent = 4)}')
             f.write(f'\t}}\n')
-            f.write(f'\t\t\t]\n')
+            f.write(f'\t\t\t]  \n')
             f.write(f'}}\n')
 
     def write_BoAnDi_infos(self,
@@ -284,6 +297,26 @@ class WriteLmp(GetData):
         m = ~pd.DataFrame(np.sort(df1[['name']], axis=1)).duplicated()
         df1 = df1[m]
         df1 = df1.sort_values(by=['typ'], axis=0)
+        if char == 'bonds':
+            df1['style'] = ''
+            df1['kbond'] = ''
+            df1['r'] = ''
+            self.Bonds_param : dict[typing.Any, list[typing.Any]]
+            self.Bonds_param = df1.to_dict(orient='records')
+        elif char == 'angles':
+            df1['style'] = ''
+            df1['kangle'] = ''
+            df1['angle'] = ''
+            self.Angles_param : dict[typing.Any, list[typing.Any]]
+            self.Angles_param = df1.to_dict(orient='records')
+        elif char == 'dihedrals':
+            df1['style'] = ''
+            df1['k1'] = ''
+            df1['k2'] = ''
+            df1['k3'] = ''
+            df1['k4'] = ''
+            self.Dihedrals_param : dict[typing.Any, list[typing.Any]]
+            self.Dihedrals_param = df1.to_dict(orient='records')
         with open(jfile, 'a') as f:
             f.write(f'#{char} {"info":<30}\n')
             f.write(f'#{"id type name":<30}\n')
