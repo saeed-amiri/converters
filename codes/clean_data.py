@@ -160,7 +160,7 @@ class Dihedrals:
         types: list[int]  # Dihedrals type from names
         type_names: list[str]  # Dihedrals types' names
         names = self.dihedrals_name(raw_data)
-        typ = Types(names)
+        typ = Types(names, dihedrals=True)
         types = typ.types
         type_names = typ.types_name
         columns: list[str]  # DataFrame columns for dihedrals in LAMMPS
@@ -216,14 +216,16 @@ class Dihedrals:
 class Types:
     """class to return right names and types"""
     def __init__(self,
-                 names: list[str]  # Names to get the types based on them
+                 names: list[str],    # Names to get the types based on them
+                 dihedrals: bool = False  # Flag to correct the dihedrals duple
                  ) -> None:
         self.types: list[int]  # types to set to the system
         self.types_name: list[str]  # Names of the types NOT names
-        self.types, self.types_name = self.get_types(names)
+        self.types, self.types_name = self.get_types(names, dihedrals)
 
     def get_types(self,
-                  names: list[str]  # Names of the bonds
+                  names: list[str],  # Names of the bonds
+                  dihedrals: bool = False  # Flag to correct the dihedrals dups
                   ) -> tuple[list[str], list[str]]:  # Type of the angles
         """make a correct type for angles
         Angle ABC is same as CBA
@@ -246,6 +248,8 @@ class Types:
         # new type for all sets of angles
         name_lst: list[list[str]]  # type of each set of angles
         name_lst = [[str(type_dict[i]) for i in item] for item in tmp_lst]
+        if dihedrals:
+            name_lst = [sorted(item) for item in name_lst]
         # Make one list of all the angles with thier atom types
         name_int: list[str]  # make a str list of int of types
         name_int = ['_'.join(item) for item in name_lst]
