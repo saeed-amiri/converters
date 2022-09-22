@@ -48,6 +48,7 @@ class Bonds:
         """correct the name and type of the bonds"""
         names: list[str]  # Bonds names
         types: list[int]  # Bonds type from names
+        types_name: list[str]  # Bonds types' names
         names = self.bonds_name(raw_data)
         typ = Types(names)
         types = typ.types
@@ -83,7 +84,7 @@ class Bonds:
                 for item in raw_data.Bonds_df['aj']
                 ]
         bonds = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
-        return bonds    
+        return bonds
 
 
 class Angles:
@@ -157,10 +158,13 @@ class Dihedrals:
         """correct the name and type of the dihedrals"""
         names: list[str]  # Dihedrals names
         types: list[int]  # Dihedrals type from names
+        type_names: list[str]  # Dihedrals types' names
         names = self.dihedrals_name(raw_data)
-        types = get_type(names)
+        typ = Types(names)
+        types = typ.types
+        type_names = typ.types_name
         columns: list[str]  # DataFrame columns for dihedrals in LAMMPS
-        columns = ['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name']
+        columns = ['typ', 'ai', 'aj', 'ak', 'ah', 'cmt', 'name', 'type_name']
         df: pd.DataFrame  # Dihedrals df to write out
         df = pd.DataFrame(columns=columns)
         df['typ'] = types
@@ -169,8 +173,9 @@ class Dihedrals:
         df['aj'] = raw_data.Dihedrals_df['aj']
         df['ak'] = raw_data.Dihedrals_df['ak']
         df['ah'] = raw_data.Dihedrals_df['ah']
-        df['name'] = names
         df['cmt'] = ['#' for _ in df.index]
+        df['name'] = names
+        df['type_name'] = type_names
         return df
 
     def dihedrals_name(self,
@@ -218,8 +223,8 @@ class Types:
         self.types, self.types_name = self.get_types(names)
 
     def get_types(self,
-                    names: list[str]  # Names of the bonds
-                    ) -> tuple[list[str], list[str]]:  # Type of the angles
+                  names: list[str]  # Names of the bonds
+                  ) -> tuple[list[str], list[str]]:  # Type of the angles
         """make a correct type for angles
         Angle ABC is same as CBA
         Fixing this is complicated since it entirely depends on the
@@ -320,6 +325,7 @@ class CleanData(Bonds,  # To get Bonds_df to write into files
         """call all the methods"""
         self.Atoms_df: pd.DataFrame = raw_data.Atoms_df
         self.Masses_df: pd.DataFrame = raw_data.Masses_df
+
 
 if __name__ == '__main__':
     fname = sys.argv[1]
