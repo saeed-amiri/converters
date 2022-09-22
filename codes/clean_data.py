@@ -49,15 +49,23 @@ class CleanData:
         """call all the methods"""
         self.Atoms_df: pd.DataFrame = self.raw_data.Atoms_df
         self.Bonds_df: pd.DataFrame = self.get_bonds()  # Bonds df to write
-        self.Angles_df: pd.DataFrame = self.get_angles()  # Angles df to write
-        self.Dihedrals_df: pd.DataFrame = self.get_dihedrals()  # Dihedrals df
         self.Masses_df: pd.DataFrame = self.raw_data.Masses_df
 
-    def get_bonds(self) -> pd.DataFrame:  # Bonds DataFrame for writing
+
+class Bonds:
+    """clean the bonds section with the right names and types"""
+    def __init__(self,
+                 raw_data: rdlmp.ReadData  # raw data to clean the bonds
+                 ) -> None:
+        self.Bonds_df: pd.DataFrame = self.get_bonds(raw_data)  # Bonds df
+
+    def get_bonds(self,
+                  raw_data: rdlmp.ReadData  # raw data to clean the bonds
+                  ) -> pd.DataFrame:  # Bonds DataFrame for writing
         """correct the name and type of the bonds"""
         names: list[str]  # Bonds names
         types: list[int]  # Bonds type from names
-        names = self.bonds_name()
+        names = self.bonds_name(raw_data)
         types = get_type(names)
         columns: list[str]  # DataFrame columns for bonds in LAMMPS
         columns = ['typ', 'ai', 'aj', 'cmt', 'name']
@@ -65,37 +73,47 @@ class CleanData:
         df = pd.DataFrame(columns=columns)
         df['typ'] = types
         df.index += 1  # Since the raw data increased one
-        df['ai'] = self.raw_data.Bonds_df['ai']
-        df['aj'] = self.raw_data.Bonds_df['aj']
+        df['ai'] = raw_data.Bonds_df['ai']
+        df['aj'] = raw_data.Bonds_df['aj']
         df['name'] = names
         df['cmt'] = ['#' for _ in df.index]
         return df
 
-    def bonds_name(self) -> list[str]:  # Name of the bonds
+    def bonds_name(self,
+                   raw_data: rdlmp.ReadData  # raw data to clean the bonds
+                   ) -> list[str]:  # Name of the bonds
         """return name of the bonds by making from Atoms_df name"""
         ai_name: list[str]  # 1st atoms names
         aj_name: list[str]  # 2nd atoms names
         bonds: list[str]  # Bonds names
         ai_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Bonds_df['ai']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Bonds_df['ai']
                 ]
         aj_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Bonds_df['aj']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Bonds_df['aj']
                 ]
         bonds = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
         return bonds
 
-    def get_angles(self) -> pd.DataFrame:  # Angles DataFrame for writing
+
+class Angles:
+    """Clean the angles section by giving the right names abd types"""
+    def __init__(self,
+                 raw_data: rdlmp.ReadData  # raw data to clean the angles
+                 ) -> None:
+        self.Angles_df: pd.DataFrame = self.get_angles(raw_data)  # Angles
+
+    def get_angles(self,
+                   raw_data: rdlmp.ReadData  # raw data to clean the angles
+                   ) -> pd.DataFrame:  # Angles DataFrame for writing
         """correct the name and type of the angles"""
         names: list[str]  # Angles names
         types: list[int]  # Angles type from names
-        names = self.angles_name()
+        names = self.angles_name(raw_data)
         types = get_type(names)
         angle_type: tuple[list[int]]  # type of each angle with ABC=CBA
         type_name: list[str]  # name of each type of each angle Angle
@@ -106,37 +124,36 @@ class CleanData:
         df = pd.DataFrame(columns=columns)
         df['typ'] = angle_type
         df.index += 1   # Since the raw data increased one
-        df['ai'] = self.raw_data.Angles_df['ai']
-        df['aj'] = self.raw_data.Angles_df['aj']
-        df['ak'] = self.raw_data.Angles_df['ak']
+        df['ai'] = raw_data.Angles_df['ai']
+        df['aj'] = raw_data.Angles_df['aj']
+        df['ak'] = raw_data.Angles_df['ak']
         df['name'] = names
         df['type_name'] = type_name
         df['cmt'] = ['#' for _ in df.index]
         return df
 
-    def angles_name(self) -> list[str]:  # Name of the angles
+    def angles_name(self,
+                    raw_data: rdlmp.ReadData  # raw data to clean the angles
+                    ) -> list[str]:  # Name of the angles
         """return name of the angles by making from Atoms_df name"""
         ai_name: list[str]  # 1st atoms names
         aj_name: list[str]  # 2nd atoms names
         ak_name: list[str]  # 3rd atoms names
         angles: list[str]  # Angles names
         ai_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Angles_df['ai']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Angles_df['ai']
                   ]
         aj_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Angles_df['aj']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Angles_df['aj']
                   ]
         ak_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Angles_df['ak']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Angles_df['ak']
                   ]
         angles = [f'{i}_{j}_{k}' for i, j, k in zip(ai_name, aj_name, ak_name)]
         return angles
@@ -221,7 +238,17 @@ class CleanData:
         seen_add = seen.add
         return [x for x in lst if not (x in seen or seen_add(x))]
 
-    def get_dihedrals(self) -> pd.DataFrame:  # Dihedrals DataFrame for writing
+
+class Dihedrals:
+    """set the right names and types for dihedrals section"""
+    def __init__(self,
+                 raw_data: rdlmp.ReadData  # raw data to clean the angles
+                 ) -> None:
+        self.Dihedrals_df: pd.DataFrame = self.get_dihedrals(raw_data)
+
+    def get_dihedrals(self,
+                      raw_data: rdlmp.ReadData  # raw data to clean the dihedra
+                      ) -> pd.DataFrame:  # Dihedrals DataFrame for writing
         """correct the name and type of the dihedrals"""
         names: list[str]  # Dihedrals names
         types: list[int]  # Dihedrals type from names
@@ -233,15 +260,17 @@ class CleanData:
         df = pd.DataFrame(columns=columns)
         df['typ'] = types
         df.index += 1   # Since the raw data increased one
-        df['ai'] = self.raw_data.Dihedrals_df['ai']
-        df['aj'] = self.raw_data.Dihedrals_df['aj']
-        df['ak'] = self.raw_data.Dihedrals_df['ak']
-        df['ah'] = self.raw_data.Dihedrals_df['ah']
+        df['ai'] = raw_data.Dihedrals_df['ai']
+        df['aj'] = raw_data.Dihedrals_df['aj']
+        df['ak'] = raw_data.Dihedrals_df['ak']
+        df['ah'] = raw_data.Dihedrals_df['ah']
         df['name'] = names
         df['cmt'] = ['#' for _ in df.index]
         return df
 
-    def dihedrals_name(self) -> list[str]:  # Name of the dihedrals
+    def dihedrals_name(self,
+                       raw_data: rdlmp.ReadData  # raw data to clean dihedrals
+                       ) -> list[str]:  # Name of the dihedrals
         """return name of the dihedrals by making from Atoms_df name"""
         ai_name: list[str]  # 1st atoms names
         aj_name: list[str]  # 2nd atoms names
@@ -249,28 +278,24 @@ class CleanData:
         ah_name: list[str]  # 4th atoms names
         dihedrals: list[str]  # Dihedrals names
         ai_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Dihedrals_df['ai']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Dihedrals_df['ai']
                   ]
         aj_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Dihedrals_df['aj']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Dihedrals_df['aj']
                   ]
         ak_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Dihedrals_df['ak']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Dihedrals_df['ak']
                   ]
         ah_name = [
-                self.raw_data.Atoms_df.loc[
-                    self.raw_data.Atoms_df['atom_id'] == item
-                    ]['name'][item]
-                for item in self.raw_data.Dihedrals_df['ah']
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['name'][item]
+                for item in raw_data.Dihedrals_df['ah']
                   ]
         dihedrals = [
             f'{i}_{j}_{k}_{h}' for i, j, k, h in
