@@ -1,10 +1,8 @@
-#atom_types	cvff
-
-> Atom type definitions for any variant of cvff
-> Masses from CRC 1973/74 pages B-250.
+!atom_types	cvff
+! Atom type definitions for any variant of cvff
+! Masses from CRC 1973/74 pages B-250.
 
 !Ver  Ref  Type    Mass      Element  Connections   Comment
-!---- ---  ----  ----------  -------  -----------------------------------------
  1.0   1    h      1.007970    H           1        Hydrogen bonded to C. Masses from CRC 1973/74 pages B-250.  
  1.0   1    d      2.014000    D           1        General Deuterium Atom                                           
  1.0   1    hn     1.007970    H           1        Hydrogen bonded to N                                        
