@@ -1,6 +1,7 @@
 import pandas as pd
 import sys
 import read_lmp_data as rdlmp
+import read_cvff as cvtyp
 from colors_text import TextColor as bcolors
 
 
@@ -34,3 +35,27 @@ class Doc:
     the FRC file and sum up all of the contributions due to all of the
     bonded neighbors of each atom.)"
     """
+
+class Car:
+    """make car file by reading lammps data file"""
+    def __init__(self,
+                 fname: str  # Name of the input file
+                 ) -> None:
+        lmp: rdlmp.ReadData  # Whole LAMMPS data
+        cvff = cvtyp.Cvff()  # cvff atom types
+        lmp = rdlmp.ReadData(fname)
+        self.to_car(lmp, cvff)
+
+    def to_car(self,
+               lmp: rdlmp.ReadData,  # Whole LAMMPS data
+               cvff # cvff atom types
+               ) -> None:
+        """call all the methods to convert data"""
+        print(cvff.df)
+
+    def mk_df(self,
+              atoms: pd.DataFrame):
+        """"""
+
+if __name__ == '__main__':
+    msi = Mdf(sys.argv[1])
