@@ -48,14 +48,16 @@ class Car:
         lmp: rdlmp.ReadData  # Whole LAMMPS data
         cvff = cvtyp.Cvff()  # cvff atom types
         lmp = rdlmp.ReadData(fname)
-        self.to_car(lmp, cvff)
+        self.to_car(lmp, cvff, fname)
 
     def to_car(self,
                lmp: rdlmp.ReadData,  # Whole LAMMPS data
-               cvff  # cvff atom types
+               cvff: cvtyp.Cvff,  # cvff atom types
+               fname: str  # name of the input file
                ) -> None:
         """call all the methods to convert data"""
         df: pd.DataFrame = self.mk_df(lmp.Atoms_df, cvff)  # Car DataFrame
+        self.write_car(df, fname)
 
     def mk_df(self,
               atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
@@ -125,6 +127,24 @@ class Car:
         seen: set[str] = set()
         seen_add = seen.add
         return [x for x in lst if not (x in seen or seen_add(x))]
+
+    def write_car(self,
+                  df: pd.DataFrame,  # Car DataFrame to write
+                  fname: str  # Name of the input file
+                  ) -> None:
+        """write .car file with name of the input file"""
+        outname: str = f'{fname.split(".")[0]}.car'  # Name of the output file
+        with open(outname, 'w') as f:
+            f.write(f'!BIOSYSM XXX X\n')
+            f.write(f'PBC=OFF\n')
+            f.write(f'Material Studio Generated CAR File\n')
+            f.write(f'!written by: {self.__class__.__name__}\n')
+            df = df.astype({'x': float, 'y': float, 'z': float})
+            df.to_csv(f, sep='\t', header=None, index=False,
+                      float_format='%.8f')
+            f.write('end\n')
+            f.write('end\n')
+            f.write(f'\n')
 
 
 if __name__ == '__main__':
