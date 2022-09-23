@@ -32,6 +32,8 @@
  1.0   1    ca    12.011150    C           4        General amino acid alpha carbon (sp3)                       
  1.0   1    c3    12.011150    C           4        Sp3 carbon in methyl (CH3) group                            
  1.0   1    cn    12.011150    C           4        Sp3 Carbon bonded to N                                      
+ 1.0   1    c2n   12.011150    C           4        Sp3 Carbon bonded to N with 2 Hydrogen
+ 1.0   1    c3n   12.011150    C           4        Sp3 Carbon bonded to N with 3 Hydrogen
  1.0   1    c2    12.011150    C           4        Sp3 carbon bonded to 2 H's, 2 heavy atoms                   
  1.0   1    c1    12.011150    C           4        Sp3 carbon bonded to 1 H, 3 Heavy atoms                     
  1.0   1    c5    12.011150    C           3        Sp2 aromatic carbon in five membered ring                   
