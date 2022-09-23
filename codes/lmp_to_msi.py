@@ -1,7 +1,10 @@
-import pandas as pd
 import sys
-import read_lmp_data as rdlmp
+import typing
+import collections
+import numpy as np
+import pandas as pd
 import read_cvff as cvtyp
+import read_lmp_data as rdlmp
 from colors_text import TextColor as bcolors
 
 
@@ -52,7 +55,7 @@ class Car:
                cvff  # cvff atom types
                ) -> None:
         """call all the methods to convert data"""
-        self.mk_df(lmp.Atoms_df, cvff)
+        df: pd.DataFrame = self.mk_df(lmp.Atoms_df, cvff)  # Car DataFrame
 
     def mk_df(self,
               atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
@@ -70,9 +73,11 @@ class Car:
         df['mol'] = atoms['mol']  # Index of the mol
         df['mol_name'] = ['UNK1' for _ in df.index]  # Name of the mol
         df['type'] = atoms['name']  # Type of the atom
-        df['element'] = self.get_element(atoms, cvff)  # Symbol of the atoms
+        elements: list[str] = self.get_element(atoms, cvff)  # Symbol of atoms
+        df['element'] = elements
         df['charge'] = atoms['charge']
-        print(df)
+        df['atom_name'] = self.mk_atom_name(elements)
+        return df
 
     def get_element(self,
                     atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
@@ -85,6 +90,41 @@ class Car:
             cvff.df.loc[cvff.df['Type'] == item]['Element'].item() for
             item in names]
         return elements
+
+    def mk_atom_name(self,
+                     elements: list[str]  # Element symbols of each atom
+                     ) -> list[str]:  # list of the atoms names
+        """retrun name for each atom based on thier element
+        It first get unique elements and thier number of repetition
+        Then rename them based on the elements
+        """
+        element_set: list[str] = self.seen_set(elements)  # Unique elements
+        l_occurence: list[int] = []  # number of each occurence of each atom
+        l_element: list[str] = []  # Name of the each element, this is safer
+        main_ind: list[int] = []  # index of each atom in the element list
+        atom_names = ['None' for _ in elements]  # final names of the atoms
+        l_unq: list[str]  # name of the duplicated atoms
+        for uniq in element_set:
+            l_unq = []
+            for k, item in enumerate(elements):
+                if item == uniq:
+                    l_unq.append(item)
+                    main_ind.append(k)
+            for ind, elem in enumerate(l_unq):
+                l_occurence.append(ind+1)
+                l_element.append(elem)
+        for i, el in enumerate(main_ind):
+            atom_names[el] = f'{l_element[i]}{l_occurence[i]}'
+        return atom_names
+
+    def seen_set(self,
+                 lst: list[typing.Any]  # to drop duplicate with keping order
+                 ) -> list[typing.Any]:
+        """remove duplicated item with keeping order of them in the
+        main list"""
+        seen: set[str] = set()
+        seen_add = seen.add
+        return [x for x in lst if not (x in seen or seen_add(x))]
 
 
 if __name__ == '__main__':
