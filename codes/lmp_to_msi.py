@@ -51,11 +51,33 @@ class Car:
                cvff # cvff atom types
                ) -> None:
         """call all the methods to convert data"""
-        print(cvff.df)
+        self.mk_df(lmp.Atoms_df, cvff)
 
     def mk_df(self,
-              atoms: pd.DataFrame):
-        """"""
+              atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
+              cvff: cvtyp.Cvff  # Atoms types, names, mass
+              ) -> pd.DataFrame:  # Car DataFrame
+        """make df in the form of the car file format"""
+        columns: list[str]  # name of the df columns
+        columns = ['atom_name', 'x', 'y', 'z', 'mol_name', 'mol', 'type',
+                   'element', 'charge']
+        df: pd.DataFrame  # Car DataFrame
+        df = pd.DataFrame(columns=columns)
+        df['x'] = atoms['x']  # Coordinates
+        df['y'] = atoms['y']  # Coordinates
+        df['z'] = atoms['z']  # Coordinates
+        df['mol'] = atoms['mol']
+        df['mol_name'] = ['UNK1' for _ in df.index]
+        df['type'] = atoms['name']
+        self.get_element(atoms)
+
+    def get_element(self,
+                      atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
+                      cvff: cvtyp.Cvff  # Atoms types, names, mass
+                     ) -> list[str]:  # Elements names
+        """get the element of each type from cvff file"""
+        
+
 
 if __name__ == '__main__':
-    msi = Mdf(sys.argv[1])
+    msi = Car(sys.argv[1])
