@@ -36,6 +36,7 @@ class Doc:
     bonded neighbors of each atom.)"
     """
 
+
 class Car:
     """make car file by reading lammps data file"""
     def __init__(self,
@@ -48,7 +49,7 @@ class Car:
 
     def to_car(self,
                lmp: rdlmp.ReadData,  # Whole LAMMPS data
-               cvff # cvff atom types
+               cvff  # cvff atom types
                ) -> None:
         """call all the methods to convert data"""
         self.mk_df(lmp.Atoms_df, cvff)
@@ -66,17 +67,24 @@ class Car:
         df['x'] = atoms['x']  # Coordinates
         df['y'] = atoms['y']  # Coordinates
         df['z'] = atoms['z']  # Coordinates
-        df['mol'] = atoms['mol']
-        df['mol_name'] = ['UNK1' for _ in df.index]
-        df['type'] = atoms['name']
-        self.get_element(atoms)
+        df['mol'] = atoms['mol']  # Index of the mol
+        df['mol_name'] = ['UNK1' for _ in df.index]  # Name of the mol
+        df['type'] = atoms['name']  # Type of the atom
+        df['element'] = self.get_element(atoms, cvff)  # Symbol of the atoms
+        df['charge'] = atoms['charge']
+        print(df)
 
     def get_element(self,
-                      atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
-                      cvff: cvtyp.Cvff  # Atoms types, names, mass
-                     ) -> list[str]:  # Elements names
+                    atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
+                    cvff: cvtyp.Cvff  # Atoms types, names, mass
+                    ) -> list[str]:  # Elements names
         """get the element of each type from cvff file"""
-        
+        elements: list[str]  # Elements name
+        names: list[str] = list(atoms['name'])  # Names of the elements
+        elements = [
+            cvff.df.loc[cvff.df['Type'] == item]['Element'].item() for
+            item in names]
+        return elements
 
 
 if __name__ == '__main__':
