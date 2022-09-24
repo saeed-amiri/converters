@@ -141,7 +141,7 @@ class Car:
             f.write(f'!written by: {self.__class__.__name__}\n')
             df = df.astype({'x': float, 'y': float, 'z': float})
             df.to_csv(f, sep='\t', header=None, index=False,
-                      float_format='%.8f')
+                      float_format='%f')
             f.write('end\n')
             f.write('end\n')
             f.write(f'\n')
