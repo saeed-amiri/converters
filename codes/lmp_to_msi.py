@@ -1,7 +1,5 @@
 import sys
 import typing
-import collections
-import numpy as np
 import pandas as pd
 import read_cvff as cvtyp
 import read_lmp_data as rdlmp
@@ -11,11 +9,12 @@ from colors_text import TextColor as bcolors
 # Helper function to drop duplicated item with keeping order
 def seen_set(lst: list[typing.Any]  # to drop duplicate with keping order
              ) -> list[typing.Any]:
-        """remove duplicated item with keeping order of them in the
-        main list"""
-        seen: set[str] = set()
-        seen_add = seen.add
-        return [x for x in lst if not (x in seen or seen_add(x))]
+    """remove duplicated item with keeping order of them in the
+    main list"""
+    seen: set[str] = set()
+    seen_add = seen.add
+    return [x for x in lst if not (x in seen or seen_add(x))]
+
 
 class Doc:
     """convert LAMMPS data file into Material Studio:
@@ -205,7 +204,8 @@ class Mdf:
         df['chirality_flag'] = ['8' for _ in df.index]
         df['occupancy'] = [float(1.0) for _ in df.index]
         df['xray_temp_factor'] = [float(0.0) for _ in df.index]
-        self.mk_bonds(car_df, lmp.Bonds_df)
+        df['connections'] = self.mk_bonds(car_df, lmp.Bonds_df)
+        print(df)
 
     def mk_names(self,
                  car_df: pd.DataFrame  # From Car class
@@ -221,18 +221,21 @@ class Mdf:
                  bonds_df: pd.DataFrame  # Bonds_df
                  ) -> list[str]:  # Connections column
         """make a char of bonds for each atom"""
-        ai: list[int]  # unique atom index of the 1st atom in the bond
-        aj: list[list[int]]  # 2nd atom which a bonded to 1st atom in ai
-        ai = seen_set(bonds_df['ai'])
-        aj = []
-        for item in ai:
-            j_list: list[int] = []  # to append all the 2nd atom for atom i
-            for i_atom, j_atom in zip(bonds_df['ai'], bonds_df['aj']):
-                if i_atom == item:
-                    j_list.append(car_df['atom_name'][j_atom])
-            aj.append(j_list)
-        aj = [' '.join(item) for item in aj]
+        ai: list[int]  # Atom index of all the atoms
+        aj_dict: dict[int, list[int]]  # Atom which a bonded to each atom
+        ai = list(car_df.index)
+        aj_dict = {item: [] for item in ai}
+        for atom_i, atom_j in zip(bonds_df['ai'], bonds_df['aj']):
+            aj_dict[atom_i].append(atom_j)
+            aj_dict[atom_j].append(atom_i)
+        aj: list[str] = []
+        for k, v in aj_dict.items():
+            l_aj = []
+            for item in v:
+                l_aj.append(car_df['atom_name'][item])
+            aj.append(' '.join(l_aj))
         return aj
+
 
 if __name__ == '__main__':
     car = Car(sys.argv[1])
