@@ -8,6 +8,15 @@ import read_lmp_data as rdlmp
 from colors_text import TextColor as bcolors
 
 
+# Helper function to drop duplicated item with keeping order
+def seen_set(lst: list[typing.Any]  # to drop duplicate with keping order
+             ) -> list[typing.Any]:
+        """remove duplicated item with keeping order of them in the
+        main list"""
+        seen: set[str] = set()
+        seen_add = seen.add
+        return [x for x in lst if not (x in seen or seen_add(x))]
+
 class Doc:
     """convert LAMMPS data file into Material Studio:
     LAMMPS.data to .mdf and .car.
@@ -99,7 +108,7 @@ class Car:
         It first get unique elements and thier number of repetition
         Then rename them based on the elements
         """
-        element_set: list[str] = self.seen_set(elements)  # Unique elements
+        element_set: list[str] = seen_set(elements)  # Unique elements
         l_occurence: list[int] = []  # number of each occurence of each atom
         l_element: list[str] = []  # Name of the each element, this is safer
         main_ind: list[int] = []  # index of each atom in the element list
@@ -117,15 +126,6 @@ class Car:
         for i, el in enumerate(main_ind):
             atom_names[el] = f'{l_element[i]}{l_occurence[i]}'
         return atom_names
-
-    def seen_set(self,
-                 lst: list[typing.Any]  # to drop duplicate with keping order
-                 ) -> list[typing.Any]:
-        """remove duplicated item with keeping order of them in the
-        main list"""
-        seen: set[str] = set()
-        seen_add = seen.add
-        return [x for x in lst if not (x in seen or seen_add(x))]
 
     def write_car(self,
                   fname: str  # Name of the input file
@@ -205,6 +205,7 @@ class Mdf:
         df['chirality_flag'] = ['8' for _ in df.index]
         df['occupancy'] = [float(1.0) for _ in df.index]
         df['xray_temp_factor'] = [float(0.0) for _ in df.index]
+        self.mk_bonds(car_df, lmp.Bonds_df)
 
     def mk_names(self,
                  car_df: pd.DataFrame  # From Car class
@@ -215,6 +216,23 @@ class Mdf:
         names = [f'XXXX_1:{item}' for item in names]
         return names
 
+    def mk_bonds(self,
+                 car_df: pd.DataFrame,  # From Car class
+                 bonds_df: pd.DataFrame  # Bonds_df
+                 ) -> list[str]:  # Connections column
+        """make a char of bonds for each atom"""
+        ai: list[int]  # unique atom index of the 1st atom in the bond
+        aj: list[list[int]]  # 2nd atom which a bonded to 1st atom in ai
+        ai = seen_set(bonds_df['ai'])
+        aj = []
+        for item in ai:
+            j_list: list[int] = []  # to append all the 2nd atom for atom i
+            for i_atom, j_atom in zip(bonds_df['ai'], bonds_df['aj']):
+                if i_atom == item:
+                    j_list.append(car_df['atom_name'][j_atom])
+            aj.append(j_list)
+        aj = [' '.join(item) for item in aj]
+        return aj
 
 if __name__ == '__main__':
     car = Car(sys.argv[1])
