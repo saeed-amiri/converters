@@ -45,19 +45,18 @@ class Car:
     def __init__(self,
                  fname: str  # Name of the input file
                  ) -> None:
-        lmp: rdlmp.ReadData  # Whole LAMMPS data
+        self.lmp: rdlmp.ReadData  # Whole LAMMPS data
         cvff = cvtyp.Cvff()  # cvff atom types
-        lmp = rdlmp.ReadData(fname)
-        self.to_car(lmp, cvff, fname)
+        self.lmp = rdlmp.ReadData(fname)
+        self.to_car(cvff, fname)
 
     def to_car(self,
-               lmp: rdlmp.ReadData,  # Whole LAMMPS data
                cvff: cvtyp.Cvff,  # cvff atom types
                fname: str  # name of the input file
                ) -> None:
         """call all the methods to convert data"""
-        df: pd.DataFrame = self.mk_df(lmp.Atoms_df, cvff)  # Car DataFrame
-        self.write_car(df, fname)
+        self.df: pd.DataFrame = self.mk_df(self.lmp.Atoms_df, cvff)  # Car df
+        self.write_car(fname)
 
     def mk_df(self,
               atoms: pd.DataFrame,  # Atoms_df of the full atom LAMMPS
@@ -129,12 +128,12 @@ class Car:
         return [x for x in lst if not (x in seen or seen_add(x))]
 
     def write_car(self,
-                  df: pd.DataFrame,  # Car DataFrame to write
                   fname: str  # Name of the input file
                   ) -> None:
         """write .car file with name of the input file"""
         outname: str = f'{fname.split(".")[0]}.car'  # Name of the output file
         with open(outname, 'w') as f:
+            df: pd.DataFrame = self.df.copy()  # To  keep main df intact
             f.write(f'!BIOSYSM XXX X\n')
             f.write(f'PBC=OFF\n')
             f.write(f'Material Studio Generated CAR File\n')
@@ -147,5 +146,47 @@ class Car:
             f.write(f'\n')
 
 
+class Mdf:
+    """write the MDF file
+    The mdf files has a following columns:
+    @column 0 name -> This line Will NOT write into file
+    @column 1 element
+    @column 2 atom_type
+    @column 3 charge_group
+    @column 4 isotope
+    @column 5 formal_charge
+    @column 6 charge
+    @column 7 switching_atom
+    @column 8 oop_flag
+    @column 9 chirality_flag
+    @column 10 occupancy
+    @column 11 xray_temp_factor
+    @column 12 connections
+
+    @molecules XXX: name
+    """
+    def __init__(self,
+                 fname: str,  # Name of the input file
+                 car_df: pd.DataFrame,  # from Car class
+                 lmp: rdlmp.ReadData  # main data read by Car class
+                 ) -> None:
+        self.to_mdf(fname, car_df, lmp)
+
+    def to_mdf(self,
+               fname: str,  # Name of the input file
+               car_df: pd.DataFrame,  # from Car class
+               lmp: rdlmp.ReadData  # main data read by Car class
+               ) -> None:
+        """call all the methods and write the file"""
+        self.mk_df(car_df, lmp)
+
+    def mk_df(self,
+              car_df: pd.DataFrame,  # from Car class
+              lmp: rdlmp.ReadData  # main data read by Car class
+              ) -> pd.DataFrame:  # To write into file
+        """make DataFrame in the MDF format"""
+
+
 if __name__ == '__main__':
-    msi = Car(sys.argv[1])
+    car = Car(sys.argv[1])
+    mdf = Mdf(sys.argv[1], car.df, car.lmp)
