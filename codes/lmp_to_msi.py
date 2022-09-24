@@ -177,7 +177,8 @@ class Mdf:
                lmp: rdlmp.ReadData  # Main data read by Car class
                ) -> None:
         """call all the methods and write the file"""
-        self.mk_df(car_df, lmp)
+        df: pd.DataFrame = self.mk_df(car_df, lmp)  # All the connections info
+        self.write_mdf(df=df, fname=fname)
 
     def mk_df(self,
               car_df: pd.DataFrame,  # From Car class
@@ -205,7 +206,7 @@ class Mdf:
         df['occupancy'] = [float(1.0) for _ in df.index]
         df['xray_temp_factor'] = [float(0.0) for _ in df.index]
         df['connections'] = self.mk_bonds(car_df, lmp.Bonds_df)
-        print(df)
+        return df
 
     def mk_names(self,
                  car_df: pd.DataFrame  # From Car class
@@ -235,6 +236,30 @@ class Mdf:
                 l_aj.append(car_df['atom_name'][item])
             aj.append(' '.join(l_aj))
         return aj
+
+    def write_mdf(self,
+                  df: pd.DataFrame,  # All the bonds data to write
+                  fname: str  # Name of the input file
+                  ) -> None:
+        """write mdf file"""
+        in_name: str = fname.split(".")[0]  # Name of file withoit extension
+        outname: str = f'{in_name}.mdf'  # Name of the input file
+        columns: list[str]  # Name of the columns in the df
+        columns = df.columns[1:]  # Dont need the first one
+        with open(outname, 'w') as f:
+            f.write(f'!BIOSYM molecular data X\n')
+            f.write(f'\n')
+            f.write(f'#topology\n')
+            f.write(f'!write by: {self.__class__.__name__} '
+                    f'Materials Studio MDF file\n')
+            f.write(f'\n')
+            f.write(f'\n')
+            for i, item in enumerate(columns):
+                f.write(f'@column {i+1} {item}\n')
+            f.write(f'\n')
+            f.write(f'@molecule {in_name}\n')
+            f.write(f'\n')
+            df.to_csv(f, sep='\t', index=False, header=None)
 
 
 if __name__ == '__main__':
