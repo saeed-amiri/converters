@@ -167,24 +167,41 @@ class Mdf:
     """
     def __init__(self,
                  fname: str,  # Name of the input file
-                 car_df: pd.DataFrame,  # from Car class
-                 lmp: rdlmp.ReadData  # main data read by Car class
+                 car_df: pd.DataFrame,  # From Car class
+                 lmp: rdlmp.ReadData  # Main data read by Car class
                  ) -> None:
         self.to_mdf(fname, car_df, lmp)
 
     def to_mdf(self,
                fname: str,  # Name of the input file
-               car_df: pd.DataFrame,  # from Car class
-               lmp: rdlmp.ReadData  # main data read by Car class
+               car_df: pd.DataFrame,  # From Car class
+               lmp: rdlmp.ReadData  # Main data read by Car class
                ) -> None:
         """call all the methods and write the file"""
         self.mk_df(car_df, lmp)
 
     def mk_df(self,
-              car_df: pd.DataFrame,  # from Car class
-              lmp: rdlmp.ReadData  # main data read by Car class
+              car_df: pd.DataFrame,  # From Car class
+              lmp: rdlmp.ReadData  # Main data read by Car class
               ) -> pd.DataFrame:  # To write into file
         """make DataFrame in the MDF format"""
+        columns: list[str]  # columns of the MDF data section
+        columns = ['name', 'element', 'atom_type', 'charge_group', 'isotope',
+                   'formal_charge', 'charge', 'switching_atom',
+                   'oop_flag', 'chirality_flag', 'occupancy',
+                   'xray_temp_factor', 'connections']
+        df: pd.DataFrame  # Infos for the mdf file
+        df = pd.DataFrame(columns=columns)
+        df['name'] = self.mk_names(car_df)
+
+    def mk_names(self,
+                 car_df: pd.DataFrame  # From Car class
+                 ) -> list[str]:  # Names of the Atoms line: column zero
+        """make a list of the name for each atom inforamtion"""
+        names: list[str]  # To return
+        names = list(car_df['atom_name'])
+        names = [f'XXXX_1:{item}' for item in names]
+        return names
 
 
 if __name__ == '__main__':
