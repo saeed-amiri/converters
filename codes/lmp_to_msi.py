@@ -193,6 +193,18 @@ class Mdf:
         df: pd.DataFrame  # Infos for the mdf file
         df = pd.DataFrame(columns=columns)
         df['name'] = self.mk_names(car_df)
+        df.index += 1  # -> Same index as car_df
+        df['element'] = car_df['element']
+        df['atom_type'] = car_df['type']
+        df['charge_group'] = ['1' for _ in df.index]
+        df['isotope'] = ['0' for _ in df.index]
+        df['formal_charge'] = ['0' for _ in df.index]
+        df['charge'] = car_df['charge']
+        df['switching_atom'] = ['0' for _ in df.index]
+        df['oop_flag'] = ['0' for _ in df.index]
+        df['chirality_flag'] = ['8' for _ in df.index]
+        df['occupancy'] = [float(1.0) for _ in df.index]
+        df['xray_temp_factor'] = [float(0.0) for _ in df.index]
 
     def mk_names(self,
                  car_df: pd.DataFrame  # From Car class
