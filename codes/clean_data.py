@@ -199,7 +199,8 @@ class Dihedrals:
         names: list[str]  # Dihedrals names
         types: list[int]  # Dihedrals type from names
         type_names: list[str]  # Dihedrals types' names
-        names = self.dihedrals_name(raw_data)
+        dihedrals_atoms: list[str]  # Names by atoms in the dihedrals
+        names, dihedrals_atoms = self.dihedrals_name(raw_data)
         typ = Types(names, dihedrals=True)
         types = typ.types
         type_names = typ.types_name
@@ -214,19 +215,44 @@ class Dihedrals:
         df['ak'] = raw_data.Dihedrals_df['ak']
         df['ah'] = raw_data.Dihedrals_df['ah']
         df['cmt'] = ['#' for _ in df.index]
-        df['name'] = names
+        df['name'] = dihedrals_atoms
         df['type_name'] = type_names
         return df
 
     def dihedrals_name(self,
                        raw_data: rdlmp.ReadData  # raw data to clean dihedrals
-                       ) -> tuple[list[str], list[str]]:  # Name of the dihedrals
+                       ) -> tuple[list[str], list[str]]:  # Names of dihedrals
         """return name of the dihedrals by making from Atoms_df name"""
-        ai_name: list[str]  # 1st atoms names
-        aj_name: list[str]  # 2nd atoms names
-        ak_name: list[str]  # 3rd atoms names
-        ah_name: list[str]  # 4th atoms names
+        ai_d_name: list[str]  # 1st atoms names as thier type in the dihedrals
+        aj_d_name: list[str]  # 2nd atoms names as thier type in the dihedrals
+        ak_d_name: list[str]  # 3rd atoms names as thier type in the dihedrals
+        ah_d_name: list[str]  # 4th atoms names as thier type in the dihedrals
+        ai_name: list[str]  # 1st atoms names which involve in a dihedrals
+        aj_name: list[str]  # 2nd atoms names which involve in a dihedrals
+        ak_name: list[str]  # 3rd atoms names which involve in a dihedrals
+        ah_name: list[str]  # 4th atoms names which involve in a dihedrals
         dihedrals: list[str]  # Dihedrals names
+        dihedrals_atoms: list[str]  # Dihedrals names by atoms names
+        ai_d_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Dihedrals_df['ai']
+                  ]
+        aj_d_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Dihedrals_df['aj']
+                  ]
+        ak_d_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Dihedrals_df['ak']
+                  ]
+        ah_d_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Dihedrals_df['ah']
+                  ]
         ai_name = [
                 raw_data.Atoms_df.loc[
                     raw_data.Atoms_df['atom_id'] == item]['name'][item]
@@ -247,10 +273,15 @@ class Dihedrals:
                     raw_data.Atoms_df['atom_id'] == item]['name'][item]
                 for item in raw_data.Dihedrals_df['ah']
                   ]
-        dihedrals = [
-            f'{i}_{j}_{k}_{h}' for i, j, k, h in
-            zip(ai_name, aj_name, ak_name, ah_name)]
-        return dihedrals
+        dihedrals = [ f'{i}_{j}_{k}_{h}' for i, j, k, h in zip(ai_d_name,
+                                                               aj_d_name, 
+                                                               ak_d_name, 
+                                                               ah_d_name)]
+        dihedrals_atoms = [ f'{i}_{j}_{k}_{h}' for i, j, k, h in zip(ai_name,
+                                                                     aj_name, 
+                                                                     ak_name, 
+                                                                     ah_name)]                                                               
+        return dihedrals, dihedrals_atoms
 
 
 class Types:
