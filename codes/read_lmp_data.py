@@ -480,6 +480,7 @@ class Body(Header):
 
     def set_masses(self) -> pd.DataFrame:
         names_list: list[str] = []  # list to store all the names
+        b_names_list: list[str] = []  # All the name in bonds, angles, dihedral
         cmt_list: list[str] = []  # list to store '#'
         columns: list[str] = ['mass']  # column name of the DFs
         Masses_df = pd.DataFrame.from_dict(self.Masses,
@@ -487,9 +488,11 @@ class Body(Header):
         Masses_df['typ'] = Masses_df.index
         for k, v in self.Masses.items():
             names_list.append(self.Names[k])
+            b_names_list.append(self.Bonds_Names[k])
             cmt_list.append('#')
         Masses_df['cmt'] = cmt_list
         Masses_df['name'] = names_list
+        Masses_df['b_name'] = b_names_list
         return Masses_df
 
 
