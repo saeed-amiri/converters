@@ -253,6 +253,7 @@ class WriteLmp(GetData):
         df['sigma'] = ''
         df['epsilon'] = ''
         df['r_cut'] = ''
+        df['charge'] = ''
         df.index += 1
         jfile: str = f'{self.fname.split(".")[0]}.json'  # Output name
         df_dict: dict[typing.Any, list[typing.Any]]
