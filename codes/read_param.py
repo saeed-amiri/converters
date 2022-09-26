@@ -1,4 +1,3 @@
-import readline
 import sys
 import pandas as pd
 
@@ -35,7 +34,10 @@ class ReadParam:
             self.atoms: pd.DataFrame = self.get_atoms(atoms)  # LJ information
         if bonds:
             self.bonds: pd.DataFrame = self.get_bonds(bonds)  # Bonds infos
-        print(self.bonds)
+        if angles:
+            self.angles: pd.DataFrame = self.get_angles(angles)  # Angles infos
+        if dihedrals:
+            self.dihedrals: pd.DataFrame = self.get_dihedrals(dihedrals)
 
     def get_atoms(self,
                   atoms: list[str]  # atoms line in param file
@@ -86,6 +88,57 @@ class ReadParam:
         df['bond_name'] = bond_name
         df['r'] = r
         df['kbond'] = kbond
+        return df
+
+    def get_angles(self,
+                   angles: list[str]  # List of angles lines
+                   ) -> pd.DataFrame:  # Angles interaction, in harmonic format
+        """return data for harmonic interactions"""
+        columns: list[str]  # Columns for the df
+        columns = ['angle_name', 'angle', 'kangle']
+        df = pd.DataFrame(columns=columns)
+        angle_name: list[str] = []  # Name of the angles (based on type)
+        angle: list[str] = []  # To save angles length
+        kangle: list[str] = []  # To save angles strength
+        for item in angles:
+            l_line: list[str]  # breacking the line
+            l_line = item.strip().split(' ')
+            angle_name.append(l_line[1])
+            angle.append(l_line[2])
+            try:
+                kangle.append(l_line[3])
+            except IndexError:
+                kangle.append('0.0')
+        df['angle_name'] = angle_name
+        df['angle'] = angle
+        df['kangle'] = kangle
+        return df
+
+    def get_dihedrals(self,
+                      dihedrals: list[str]  # List of dihedrals lines
+                      ) -> pd.DataFrame:  # Dihderals interaction, OPLS format
+        """return data for OPLS interactions"""
+        columns: list[str]  # Columns for the df
+        columns = ['dihedral_name', 'k1', 'k2', 'k3', 'k4']
+        df = pd.DataFrame(columns=columns)
+        dihedral_name: list[str] = []  # Name of the dihedrals (based on type)
+        k1: list[str] = []  # To save dihedrals k1
+        k2: list[str] = []  # To save dihedrals k2
+        k3: list[str] = []  # To save dihedrals k3
+        k4: list[str] = []  # To save dihedrals k4
+        for item in dihedrals:
+            l_line: list[str]  # breacking the line
+            l_line = item.strip().split(' ')
+            dihedral_name.append(l_line[1])
+            k1.append(l_line[2])
+            k2.append(l_line[3])
+            k3.append(l_line[4])
+            k4.append(l_line[4])
+        df['dihedral_name'] = dihedral_name
+        df['k1'] = k1
+        df['k2'] = k2
+        df['k3'] = k3
+        df['k4'] = k4
         return df
 
     def get_params(self,
