@@ -67,7 +67,6 @@ class ReadParam:
         df['epsilom'] = epsilom
         df['charge'] = charge
         df['style'] = charge
-        print(df)
         return df
 
     def get_bonds(self,
@@ -96,7 +95,6 @@ class ReadParam:
         df['r'] = r
         df['kbond'] = kbond
         df['style'] = style
-        print(df)
         return df
 
     def get_angles(self,
@@ -125,7 +123,6 @@ class ReadParam:
         df['angle'] = angle
         df['kangle'] = kangle
         df['style'] = style
-        print(df)
         return df
 
     def get_dihedrals(self,
@@ -156,7 +153,6 @@ class ReadParam:
         df['k3'] = k3
         df['k4'] = k4
         df['style'] = style
-        print(df)
         return df
 
     def get_params(self,
