@@ -196,7 +196,7 @@ class Mdf:
         df.index += 1  # -> Same index as car_df
         df['element'] = car_df['element']
         df['atom_type'] = car_df['type']
-        df['charge_group'] = ['1' for _ in df.index]
+        df['charge_group'] = ['?' for _ in df.index]
         df['isotope'] = ['0' for _ in df.index]
         df['formal_charge'] = ['0' for _ in df.index]
         df['charge'] = car_df['charge']
@@ -214,7 +214,7 @@ class Mdf:
         """make a list of the name for each atom inforamtion"""
         names: list[str]  # To return
         names = list(car_df['atom_name'])
-        names = [f'XXXX_1:{item}' for item in names]
+        names = [f'UNK1_1:{item}' for item in names]
         return names
 
     def mk_bonds(self,
@@ -249,10 +249,10 @@ class Mdf:
         with open(outname, 'w') as f:
             f.write(f'!BIOSYM molecular data X\n')
             f.write(f'\n')
-            f.write(f'#topology\n')
             f.write(f'!write by: {self.__class__.__name__} '
                     f'Materials Studio MDF file\n')
             f.write(f'\n')
+            f.write(f'#topology\n')
             f.write(f'\n')
             for i, item in enumerate(columns):
                 f.write(f'@column {i+1} {item}\n')
@@ -260,6 +260,7 @@ class Mdf:
             f.write(f'@molecule {in_name}\n')
             f.write(f'\n')
             df.to_csv(f, sep='\t', index=False, header=None)
+            f.write(f'#end\n')
 
 
 if __name__ == '__main__':
