@@ -208,7 +208,6 @@ class Header:
             self.Masses[typ] = mass
             self.Names[typ] = atom_name
             self.Bonds_Names[typ] = bond_name
-            print(self.Bonds_Names)
 
     def get_pair_coeff(self, line, check) -> None:
         # stting the nth row of the dictionary
@@ -335,6 +334,7 @@ class Body(Header):
             i_y = float(line[i_col + 2])
             i_z = float(line[i_col + 3])
             i_name = self.Names[i_typ]
+            i_bond_name = self.Bonds_Names[i_typ]
             try:
                 i_nx = int(line[i_col + 4])
                 i_ny = int(line[i_col + 5])
@@ -356,7 +356,8 @@ class Body(Header):
                                            ny=i_ny,
                                            nz=i_nz,
                                            cmt='#',
-                                           name=i_name
+                                           name=i_name,
+                                           b_name=i_bond_name
                                           )
             else:
                 self.Atoms[atom_id] = dict(
@@ -370,7 +371,8 @@ class Body(Header):
                                            ny=i_ny,
                                            nz=i_nz,
                                            cmt='#',
-                                           name=i_name
+                                           name=i_name,
+                                           b_name=i_bond_name
                                           )
 
     def get_atom_style(self, line: str) -> bool:
