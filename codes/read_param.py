@@ -33,13 +33,16 @@ class ReadParam:
         atoms, bonds, angles, dihedrals = self.get_params(fname)
         if atoms:
             self.atoms: pd.DataFrame = self.get_atoms(atoms)  # LJ information
+        if bonds:
+            self.bonds: pd.DataFrame = self.get_bonds(bonds)  # Bonds infos
+        print(self.bonds)
 
     def get_atoms(self,
                   atoms: list[str]  # atoms line in param file
                   ) -> pd.DataFrame:  # Atoms LJ information
         """convert info to dataframe"""
         columns: list[str]  # Columns for the df
-        columns =['atom_name', 'mass', 'sigma', 'epsilom', 'charge']
+        columns = ['atom_name', 'mass', 'sigma', 'epsilom', 'charge']
         df = pd.DataFrame(columns=columns)
         atom_name: list[str] = []  # To save from each line
         mass: list[str] = []  # To save from each line
@@ -61,10 +64,34 @@ class ReadParam:
         df['charge'] = charge
         return df
 
+    def get_bonds(self,
+                  bonds: list[str]  # List of bonds lines
+                  ) -> pd.DataFrame:  # Bonds interaction, in harmonic format
+        """return data for harmonic interactions"""
+        columns: list[str]  # Columns for the df
+        columns = ['bond_name', 'r', 'kbond']
+        df = pd.DataFrame(columns=columns)
+        bond_name: list[str] = []  # Name of the bonds (based on type)
+        r: list[str] = []  # To save bonds length
+        kbond: list[str] = []  # To save bonds strength
+        for item in bonds:
+            l_line: list[str]  # breacking the line
+            l_line = item.strip().split(' ')
+            bond_name.append(l_line[1])
+            r.append(l_line[2])
+            try:
+                kbond.append(l_line[3])
+            except IndexError:
+                kbond.append('0.0')
+        df['bond_name'] = bond_name
+        df['r'] = r
+        df['kbond'] = kbond
+        return df
+
     def get_params(self,
                    fname: str  # Name of the input file
                    ) -> tuple[list[str], list[str], list[str], list[str]]:
-                   # return lines about atoms, bonds, angles, dihedrals
+        # return lines about atoms, bonds, angles, dihedrals
         """read and call all the methods"""
         atoms: list[str] = []  # Atoms informations
         bonds: list[str] = []  # Bonds informations
@@ -91,7 +118,7 @@ class ReadParam:
                 if not line:
                     break
         return atoms, bonds, angles, dihedrals
-        
+
 
 if __name__ == '__main__':
     fname: str = sys.argv[1]  # Input file
