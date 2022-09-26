@@ -162,6 +162,7 @@ class Header:
         self.PairCoeff: dict[int, typing.Any] = dict()
         self.BondCoeff: dict[int, typing.Any] = dict()
         self.AngleCoeff: dict[int, typing.Any] = dict()
+        self.Bonds_Names: dict[int, str] = dict()
         self.DihedralCoeff: dict[int, typing.Any] = dict()
 
     def set_attr_zero(self) -> None:
@@ -192,13 +193,22 @@ class Header:
             typ = int(line.split(' ')[0])
             mass = float(line.split(' ')[1])
             try:
-                atom_name = line.split('#')[1].strip()
+                try:
+                    name = line.split('#')[1].strip()
+                    all_name = name.strip().split(' ')
+                    atom_name = all_name[0]
+                    bond_name = all_name[1]
+                except IndexError:
+                    atom_name = line.split('#')[1].strip()[1]
+                    bond_name = atom_name
             except IndexError:
                 exit(f'{bcolors.FAIL}\tAtoms name in the `Masses` '
                      f'section is not defined; Ex.:\n\t\t'
                      f'Masses\n\t\t1 1 # X{bcolors.ENDC}')
             self.Masses[typ] = mass
             self.Names[typ] = atom_name
+            self.Bonds_Names[typ] = bond_name
+            print(self.Bonds_Names)
 
     def get_pair_coeff(self, line, check) -> None:
         # stting the nth row of the dictionary
