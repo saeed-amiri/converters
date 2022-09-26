@@ -273,14 +273,14 @@ class Dihedrals:
                     raw_data.Atoms_df['atom_id'] == item]['name'][item]
                 for item in raw_data.Dihedrals_df['ah']
                   ]
-        dihedrals = [ f'{i}_{j}_{k}_{h}' for i, j, k, h in zip(ai_d_name,
-                                                               aj_d_name, 
-                                                               ak_d_name, 
-                                                               ah_d_name)]
-        dihedrals_atoms = [ f'{i}_{j}_{k}_{h}' for i, j, k, h in zip(ai_name,
-                                                                     aj_name, 
-                                                                     ak_name, 
-                                                                     ah_name)]                                                               
+        dihedrals = [f'{i}_{j}_{k}_{h}' for i, j, k, h in zip(ai_d_name,
+                                                              aj_d_name,
+                                                              ak_d_name,
+                                                              ah_d_name)]
+        dihedrals_atoms = [f'{i}_{j}_{k}_{h}' for i, j, k, h in zip(ai_name,
+                                                                    aj_name,
+                                                                    ak_name,
+                                                                    ah_name)]
         return dihedrals, dihedrals_atoms
 
 
