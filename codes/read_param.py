@@ -44,13 +44,14 @@ class ReadParam:
                   ) -> pd.DataFrame:  # Atoms LJ information
         """convert info to dataframe"""
         columns: list[str]  # Columns for the df
-        columns = ['atom_name', 'mass', 'sigma', 'epsilom', 'charge']
+        columns = ['atom_name', 'mass', 'sigma', 'epsilom', 'charge', 'style']
         df = pd.DataFrame(columns=columns)
         atom_name: list[str] = []  # To save from each line
         mass: list[str] = []  # To save from each line
         sigma: list[str] = []  # To save from each line
         epsilom: list[str] = []  # To save from each line
         charge: list[str] = []  # To save from each line
+        style: list[str] = []  # To save from each line
         for item in atoms:
             l_line: list[str]  # breaking the line
             l_line = item.strip().split(' ')
@@ -59,11 +60,14 @@ class ReadParam:
             sigma.append(l_line[3])
             epsilom.append(l_line[4])
             charge.append(l_line[5])
+            style.append(l_line[6])
         df['atom_name'] = atom_name
         df['mass'] = mass
         df['sigma'] = sigma
         df['epsilom'] = epsilom
         df['charge'] = charge
+        df['style'] = charge
+        print(df)
         return df
 
     def get_bonds(self,
@@ -71,11 +75,12 @@ class ReadParam:
                   ) -> pd.DataFrame:  # Bonds interaction, in harmonic format
         """return data for harmonic interactions"""
         columns: list[str]  # Columns for the df
-        columns = ['bond_name', 'r', 'kbond']
+        columns = ['bond_name', 'r', 'kbond', 'style']
         df = pd.DataFrame(columns=columns)
         bond_name: list[str] = []  # Name of the bonds (based on type)
         r: list[str] = []  # To save bonds length
         kbond: list[str] = []  # To save bonds strength
+        style: list[str] = []  # To save bonds style
         for item in bonds:
             l_line: list[str]  # breacking the line
             l_line = item.strip().split(' ')
@@ -83,11 +88,15 @@ class ReadParam:
             r.append(l_line[2])
             try:
                 kbond.append(l_line[3])
+                style.append(l_line[4])
             except IndexError:
                 kbond.append('0.0')
+                style.append('harmonic')
         df['bond_name'] = bond_name
         df['r'] = r
         df['kbond'] = kbond
+        df['style'] = style
+        print(df)
         return df
 
     def get_angles(self,
@@ -95,11 +104,12 @@ class ReadParam:
                    ) -> pd.DataFrame:  # Angles interaction, in harmonic format
         """return data for harmonic interactions"""
         columns: list[str]  # Columns for the df
-        columns = ['angle_name', 'angle', 'kangle']
+        columns = ['angle_name', 'angle', 'kangle', 'style']
         df = pd.DataFrame(columns=columns)
         angle_name: list[str] = []  # Name of the angles (based on type)
         angle: list[str] = []  # To save angles length
         kangle: list[str] = []  # To save angles strength
+        style: list[str] = []  # To save angles strength
         for item in angles:
             l_line: list[str]  # breacking the line
             l_line = item.strip().split(' ')
@@ -107,11 +117,15 @@ class ReadParam:
             angle.append(l_line[2])
             try:
                 kangle.append(l_line[3])
+                style.append(l_line[4])
             except IndexError:
                 kangle.append('0.0')
+                style.append('harmonic')
         df['angle_name'] = angle_name
         df['angle'] = angle
         df['kangle'] = kangle
+        df['style'] = style
+        print(df)
         return df
 
     def get_dihedrals(self,
@@ -119,13 +133,14 @@ class ReadParam:
                       ) -> pd.DataFrame:  # Dihderals interaction, OPLS format
         """return data for OPLS interactions"""
         columns: list[str]  # Columns for the df
-        columns = ['dihedral_name', 'k1', 'k2', 'k3', 'k4']
+        columns = ['dihedral_name', 'k1', 'k2', 'k3', 'k4', 'style']
         df = pd.DataFrame(columns=columns)
         dihedral_name: list[str] = []  # Name of the dihedrals (based on type)
         k1: list[str] = []  # To save dihedrals k1
         k2: list[str] = []  # To save dihedrals k2
         k3: list[str] = []  # To save dihedrals k3
         k4: list[str] = []  # To save dihedrals k4
+        style: list[str] = []  # To save dihedrals style
         for item in dihedrals:
             l_line: list[str]  # breacking the line
             l_line = item.strip().split(' ')
@@ -133,12 +148,15 @@ class ReadParam:
             k1.append(l_line[2])
             k2.append(l_line[3])
             k3.append(l_line[4])
-            k4.append(l_line[4])
+            k4.append(l_line[5])
+            style.append(l_line[6])
         df['dihedral_name'] = dihedral_name
         df['k1'] = k1
         df['k2'] = k2
         df['k3'] = k3
         df['k4'] = k4
+        df['style'] = style
+        print(df)
         return df
 
     def get_params(self,
