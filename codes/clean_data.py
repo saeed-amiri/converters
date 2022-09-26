@@ -69,7 +69,7 @@ class Bonds:
 
     def bonds_name(self,
                    raw_data: rdlmp.ReadData  # raw data to clean the bonds
-                   ) -> list[str]:  # Name of the bonds
+                   ) -> tuple[list[str], list[str]]:  # Name of the bonds
         """return name of the bonds by making from Atoms_df name"""
         ai_name: list[str]  # 1st atoms names, type of atom for bond
         aj_name: list[str]  # 2nd atoms names, type of atom for bond
@@ -114,7 +114,8 @@ class Angles:
                    ) -> pd.DataFrame:  # Angles DataFrame for writing
         """correct the name and type of the angles"""
         names: list[str]  # Angles names
-        names = self.angles_name(raw_data)
+        angles_atom: list[str]  # Name of the atoms in the angle
+        names, angles_atom = self.angles_name(raw_data)
         angle_type: tuple[list[int]]  # type of each angle with ABC=CBA
         type_name: list[str]  # name of each type of each angle Angle
         typ = Types(names)
@@ -128,19 +129,23 @@ class Angles:
         df['ai'] = raw_data.Angles_df['ai']
         df['aj'] = raw_data.Angles_df['aj']
         df['ak'] = raw_data.Angles_df['ak']
-        df['name'] = names
+        df['name'] = angles_atom
         df['type_name'] = type_name
         df['cmt'] = ['#' for _ in df.index]
         return df
 
     def angles_name(self,
                     raw_data: rdlmp.ReadData  # raw data to clean the angles
-                    ) -> list[str]:  # Name of the angles
+                    ) -> tuple[list[str], list[str]]:  # Name of the angles
         """return name of the angles by making from Atoms_df name"""
-        ai_name: list[str]  # 1st atoms names
-        aj_name: list[str]  # 2nd atoms names
-        ak_name: list[str]  # 3rd atoms names
+        ai_a_name: list[str]  # 1st atoms names, type of atoms in the angle
+        aj_a_name: list[str]  # 2nd atoms names, type of atoms in the angle
+        ak_a_name: list[str]  # 3rd atoms names, type of atoms in the angle
+        ai_name: list[str]  # 1st atoms names which share angles
+        aj_name: list[str]  # 2nd atoms names which share angles
+        ak_name: list[str]  # 3rd atoms names which share angles
         angles: list[str]  # Angles names
+        angles_atom: list[str]  # Angles names based on the atom share them
         ai_name = [
                 raw_data.Atoms_df.loc[
                     raw_data.Atoms_df['atom_id'] == item]['name'][item]
@@ -156,8 +161,28 @@ class Angles:
                     raw_data.Atoms_df['atom_id'] == item]['name'][item]
                 for item in raw_data.Angles_df['ak']
                   ]
-        angles = [f'{i}_{j}_{k}' for i, j, k in zip(ai_name, aj_name, ak_name)]
-        return angles
+        ai_a_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Angles_df['ai']
+                  ]
+        aj_a_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Angles_df['aj']
+                  ]
+        ak_a_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Angles_df['ak']
+                  ]
+        angles = [f'{i}_{j}_{k}' for i, j, k in zip(ai_a_name,
+                                                    aj_a_name,
+                                                    ak_a_name)]
+        angles_atom = [f'{i}_{j}_{k}' for i, j, k in zip(ai_name,
+                                                         aj_name,
+                                                         ak_name)]
+        return angles, angles_atom
 
 
 class Dihedrals:
@@ -195,7 +220,7 @@ class Dihedrals:
 
     def dihedrals_name(self,
                        raw_data: rdlmp.ReadData  # raw data to clean dihedrals
-                       ) -> list[str]:  # Name of the dihedrals
+                       ) -> tuple[list[str], list[str]]:  # Name of the dihedrals
         """return name of the dihedrals by making from Atoms_df name"""
         ai_name: list[str]  # 1st atoms names
         aj_name: list[str]  # 2nd atoms names
