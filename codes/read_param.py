@@ -26,6 +26,10 @@ class ReadParam:
                    fname: str  # Name of the input file
                    ) -> None:  # set attributs to self
         """read and call all the methods"""
+        atoms: list[str] = []  # Atoms informations
+        bonds: list[str] = []  # Bonds informations
+        angles: list[str] = []  # Angles informations
+        dihedrals: list[str] = []  # Dihedrals informations
         with open(fname, 'r') as f:
             while True:
                 line: str = f.readline()
@@ -35,13 +39,13 @@ class ReadParam:
                         pass
                     else:
                         if line.startswith('atom'):
-                            pass
+                            atoms.append(line)
                         elif line.startswith('bond'):
-                            pass
+                            bonds.append(line)
                         elif line.startswith('angle'):
-                            pass
+                            angles.append(line)
                         elif line.startswith('dihedral'):
-                            pass
+                            dihedrals.append(line)
                 else:
                     pass
                 if not line:
