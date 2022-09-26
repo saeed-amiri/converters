@@ -161,7 +161,7 @@ class WriteLmp(GetData):
 
     def write_masses(self, df: pd.DataFrame, f: typing.TextIO) -> None:
         """write mass section"""
-        columns: list[str] = ['typ', 'mass', 'cmt', 'name']
+        columns: list[str] = ['typ', 'mass', 'cmt', 'name', 'b_name']
         f.write(f"\n")
         f.write(f"Masses\n")
         f.write(f"\n")
