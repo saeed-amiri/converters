@@ -49,7 +49,8 @@ class Bonds:
         names: list[str]  # Bonds names
         types: list[int]  # Bonds type from names
         types_name: list[str]  # Bonds types' names
-        names = self.bonds_name(raw_data)
+        bonds_atom: list[str]  # Atoms name which share a bond
+        names, bonds_atom = self.bonds_name(raw_data)
         typ = Types(names)
         types = typ.types
         types_name = typ.types_name
@@ -62,7 +63,7 @@ class Bonds:
         df['ai'] = raw_data.Bonds_df['ai']
         df['aj'] = raw_data.Bonds_df['aj']
         df['cmt'] = ['#' for _ in df.index]
-        df['name'] = names
+        df['name'] = bonds_atom
         df['type_name'] = types_name
         return df
 
@@ -70,9 +71,12 @@ class Bonds:
                    raw_data: rdlmp.ReadData  # raw data to clean the bonds
                    ) -> list[str]:  # Name of the bonds
         """return name of the bonds by making from Atoms_df name"""
-        ai_name: list[str]  # 1st atoms names
-        aj_name: list[str]  # 2nd atoms names
-        bonds: list[str]  # Bonds names
+        ai_name: list[str]  # 1st atoms names, type of atom for bond
+        aj_name: list[str]  # 2nd atoms names, type of atom for bond
+        ai_b_name: list[str]  # 1st atoms names which share bond
+        aj_b_name: list[str]  # 2nd atoms names which share bond
+        bonds: list[str]  # Bonds names as type of the bonds
+        bonds_atom: list[str]  # Atoms name which share a bond
         ai_name = [
                 raw_data.Atoms_df.loc[
                     raw_data.Atoms_df['atom_id'] == item]['name'][item]
@@ -83,8 +87,19 @@ class Bonds:
                     raw_data.Atoms_df['atom_id'] == item]['name'][item]
                 for item in raw_data.Bonds_df['aj']
                 ]
-        bonds = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
-        return bonds
+        ai_b_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Bonds_df['ai']
+                ]
+        aj_b_name = [
+                raw_data.Atoms_df.loc[
+                    raw_data.Atoms_df['atom_id'] == item]['b_name'][item]
+                for item in raw_data.Bonds_df['aj']
+                ]
+        bonds = [f'{i}_{j}' for i, j in zip(ai_b_name, aj_b_name)]
+        bonds_atom = [f'{i}_{j}' for i, j in zip(ai_name, aj_name)]
+        return bonds, bonds_atom
 
 
 class Angles:
