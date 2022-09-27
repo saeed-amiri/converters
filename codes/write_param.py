@@ -100,18 +100,25 @@ class GetType:
 class WriteParam(GetType):
     """write parameters in json format"""
     def __init__(self,
-                 data: cllmp.CleanData  # Read data to set types
+                 data: cllmp.CleanData,  # Read data to set types
+                 fname: str  # Input data file name
                  ) -> None:
         super().__init__(data)
-        self.write_params()
+        self.write_params(fname)
 
-    def write_params(self) -> None:
+    def write_params(self,
+                     fname: str  # Input data file name
+                     ) -> None:
         """write the parameters in json by calling methods"""
         with open('param.json', 'w') as f:
+            f.write(f'{{\n')
+            f.write(f'"file": "{fname}",\n')
+            f.write(f'"symb": "{fname[0].capitalize()}",\n')
             self.write_atoms(f)
             self.write_bonds(f)
             self.write_angles(f)
             self.write_dihedrals(f)
+            f.write(f'}}\n')
 
     def write_atoms(self,
                     f: typing.TextIO  # To write into
@@ -119,6 +126,7 @@ class WriteParam(GetType):
         """write atoms in the LJ section into the output file"""
         #   atom_name    mass   sigma epsilom charge  style  type
         f.write(f'"atoms": [\n')
+        n_line: str = len(self.atoms)  # Number of lines in df
         for i, row in self.atoms.iterrows():
             f.write(f'\t{{\n'
                     f'\t"type": {row["type"]}, '
@@ -126,8 +134,11 @@ class WriteParam(GetType):
                     f'"sigma": {row["sigma"]},\t'
                     f'"epsilon": {row["epsilon"]}, '
                     f'"mass": {row["mass"]}, '
-                    f'"charge": {row["charge"]}\n'
-                    f'\t}},\n')
+                    f'"charge": {row["charge"]}\n')
+            if i < n_line-1:
+                f.write(f'\t}},\n')
+            else:
+                f.write(f'\t}}\n')
         f.write(f'  ],\n')  # 2 spaces before closing bracket
 
     def write_bonds(self,
@@ -135,34 +146,45 @@ class WriteParam(GetType):
                     ) -> None:
         """write bonds section into the output file"""
         f.write(f'"bonds": [\n')
+        n_line: str = len(self.bonds)  # Number of lines in df
         for i, row in self.bonds.iterrows():
             f.write(f'\t{{\n'
                     f'\t"type": {row["type"]}, '
                     f'"name": "{row["bond_name"]}", '
                     f'"style": "{row["style"]}", '
                     f'"kbond": {row["kbond"]}, '
-                    f'"r": {row["r"]}\n'
-                    f'\t}},\n')
+                    f'"r": {row["r"]}\n')
+            if i < n_line-1:
+                f.write(f'\t}},\n')
+            else:
+                f.write(f'\t}}\n')
+        f.write(f'  ],\n')  # 2 spaces before closing bracket
 
     def write_angles(self,
                      f: typing.TextIO  # To write into
                      ) -> None:
         """write angles section into the output file"""
         f.write(f'"angles": [\n')
+        n_line: str = len(self.angles)  # Number of lines in df
         for i, row in self.angles.iterrows():
             f.write(f'\t{{\n'
                     f'\t"type": {row["type"]}, '
                     f'"name": "{row["angle_name"]}", '
                     f'"style": "{row["style"]}", '
                     f'"kangle": {row["kangle"]}, '
-                    f'"angle": {row["angle"]}\n'
-                    f'\t}},\n')
+                    f'"angle": {row["angle"]}\n')
+            if i < n_line-1:
+                f.write(f'\t}},\n')
+            else:
+                f.write(f'\t}}\n')
+        f.write(f'  ],\n')  # 2 spaces before closing bracket
 
     def write_dihedrals(self,
                         f: typing.TextIO  # To write into
                         ) -> None:
         """write dihedrlas section into the output file"""
         f.write(f'"dihedrlas": [\n')
+        n_line: str = len(self.dihedrals)  # Number of lines in df
         for i, row in self.dihedrals.iterrows():
             f.write(f'\t{{\n'
                     f'\t"type": {row["type"]}, '
@@ -171,5 +193,9 @@ class WriteParam(GetType):
                     f'"k1": {row["k1"]}, '
                     f'"k2": {row["k1"]}, '
                     f'"k3": {row["k1"]}, '
-                    f'"k4": {row["k1"]}\n'
-                    f'\t}},\n')
+                    f'"k4": {row["k1"]}\n')
+            if i < n_line-1:
+                f.write(f'\t}},\n')
+            else:
+                f.write(f'\t}}\n')
+        f.write(f'  ]\n')  # 2 spaces before closing bracket
