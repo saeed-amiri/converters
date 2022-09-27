@@ -1,3 +1,4 @@
+import re
 import typing
 import pandas as pd
 import read_param as rdprm
@@ -14,6 +15,7 @@ class Doc:
         File in JSON with all the interactions that can be read by
         combination codes
     """
+
 
 # Rteturn unique atoms
 def seen_set(
@@ -40,8 +42,14 @@ class GetType:
                   data: cllmp.CleanData  # Cleaned data to write
                   ) -> None:
         """call all the methods to set types and write them"""
-        self.set_atoms(param.atoms, data.Atoms_df)
-    
+        self.atoms = self.set_atoms(param.atoms, data.Atoms_df)  # Atoms prm
+        self.bonds = self.set_abd_types(
+            param.bonds, data.Bonds_df, 'bond_name')  # Bonds prm
+        self.angles = self.set_abd_types(
+            param.angles, data.Angles_df, 'angle_name')  # Angles prm
+        self.dihedrals = self.set_abd_types(
+            param.dihedrals, data.Dihedrals_df, 'dihedral_name')  # Dihedralprm
+
     def set_atoms(self,
                   atoms_prm: pd.DataFrame,  # LJ parameters for atoms
                   df: pd.DataFrame  # Atoms information
@@ -60,5 +68,30 @@ class GetType:
         atoms_prm['type'] = i_type
         return atoms_prm
 
+    def set_abd_types(self,
+                      abd_prm: pd.DataFrame,  # LJ parameters for bonds, etc
+                      df: pd.DataFrame,  # Bonds, or Angles or Dihedrlas infos
+                      char: str  # Column's in df
+                      ) -> pd.DataFrame:  # Updated atoms prm
+        """updated parameters of bonds, angles, dihedrlas with thier types"""
+        abd_name: list[str]  # All the names
+        abd_name = list(df['type_name'])
+        abd_name = seen_set(abd_name)
+        abd_type: dict[str, int] = {}  # Type of the each name
+        for item in abd_name:
+            typ: int = df.loc[df['type_name'] == item]['typ']  # Type of bonds
+            abd_type[item] = seen_set(typ)[0]
+        i_type: list[int] = []  # Type of each name
+        for item in abd_prm[char]:
+            try:
+                i_type.append(abd_type[item])
+            except KeyError:
+                i_type.append(0)
+        abd_prm['type'] = i_type
+        return abd_prm
 
-
+    def drop_parentheses(self,
+                         lst: list[str]  # drop ()
+                         ) -> list[str]:
+        """drop parentheses from the names"""
+        return [re.sub(r'[()]', '', item) for item in lst]
