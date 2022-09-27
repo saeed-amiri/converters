@@ -110,6 +110,7 @@ class WriteParam(GetType):
         with open('param.json', 'w') as f:
             self.write_atoms(f)
             self.write_bonds(f)
+            self.write_angles(f)
 
     def write_atoms(self,
                     f: typing.TextIO  # To write into
@@ -140,4 +141,18 @@ class WriteParam(GetType):
                     f'"style": "{row["style"]}", '
                     f'"kbond": {row["kbond"]}, '
                     f'"r": {row["r"]}\n'
+                    f'\t}},\n')
+
+    def write_angles(self,
+                    f: typing.TextIO  # To write into
+                    ) -> None:
+        """write angles section into the output file"""
+        f.write(f'"angles": [\n')
+        for i, row in self.angles.iterrows():
+            f.write(f'\t{{\n'
+                    f'\t"type": {row["type"]}, '
+                    f'"name": "{row["angle_name"]}", '
+                    f'"style": "{row["style"]}", '
+                    f'"kangle": {row["kangle"]}, '
+                    f'"angle": {row["angle"]}\n'
                     f'\t}},\n')
