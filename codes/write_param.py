@@ -109,21 +109,35 @@ class WriteParam(GetType):
         """write the parameters in json by calling methods"""
         with open('param.json', 'w') as f:
             self.write_atoms(f)
+            self.write_bonds(f)
 
     def write_atoms(self,
                     f: typing.TextIO  # To write into
                     ) -> None:
         """write atoms in the LJ section into the output file"""
         #   atom_name    mass   sigma epsilom charge  style  type
-        print(self.atoms)
         f.write(f'"atoms": [\n')
-        f.write(f'\t{{\n')
         for i, row in self.atoms.iterrows():
-            f.write(f'\t"type": {row["type"]}, '
+            f.write(f'\t{{\n'
+                    f'\t"type": {row["type"]}, '
                     f'"name": "{row["atom_name"]}", '
                     f'"sigma": {row["sigma"]},\t'
                     f'"epsilon": {row["epsilon"]}, '
                     f'"mass": {row["mass"]}, '
-                    f'"charge": {row["charge"]},\n')
-        f.write(f'\t}}\n')
+                    f'"charge": {row["charge"]}\n'
+                    f'\t}},\n')
         f.write(f'  ],\n')  # 2 spaces before closing bracket
+
+    def write_bonds(self,
+                    f: typing.TextIO  # To write into
+                    ) -> None:
+        """write bonds section into the output file"""
+        f.write(f'"bonds": [\n')
+        for i, row in self.bonds.iterrows():
+            f.write(f'\t{{\n'
+                    f'\t"type": {row["type"]}, '
+                    f'"name": "{row["bond_name"]}", '
+                    f'"style": "{row["style"]}", '
+                    f'"kbond": {row["kbond"]}, '
+                    f'"r": {row["r"]}\n'
+                    f'\t}},\n')
