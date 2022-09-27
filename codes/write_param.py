@@ -111,6 +111,7 @@ class WriteParam(GetType):
             self.write_atoms(f)
             self.write_bonds(f)
             self.write_angles(f)
+            self.write_dihedrals(f)
 
     def write_atoms(self,
                     f: typing.TextIO  # To write into
@@ -144,8 +145,8 @@ class WriteParam(GetType):
                     f'\t}},\n')
 
     def write_angles(self,
-                    f: typing.TextIO  # To write into
-                    ) -> None:
+                     f: typing.TextIO  # To write into
+                     ) -> None:
         """write angles section into the output file"""
         f.write(f'"angles": [\n')
         for i, row in self.angles.iterrows():
@@ -155,4 +156,20 @@ class WriteParam(GetType):
                     f'"style": "{row["style"]}", '
                     f'"kangle": {row["kangle"]}, '
                     f'"angle": {row["angle"]}\n'
+                    f'\t}},\n')
+
+    def write_dihedrals(self,
+                        f: typing.TextIO  # To write into
+                        ) -> None:
+        """write dihedrlas section into the output file"""
+        f.write(f'"dihedrlas": [\n')
+        for i, row in self.dihedrals.iterrows():
+            f.write(f'\t{{\n'
+                    f'\t"type": {row["type"]}, '
+                    f'"name": "{row["dihedral_name"]}", '
+                    f'"style": "{row["style"]}", '
+                    f'"k1": {row["k1"]}, '
+                    f'"k2": {row["k1"]}, '
+                    f'"k3": {row["k1"]}, '
+                    f'"k4": {row["k1"]}\n'
                     f'\t}},\n')
