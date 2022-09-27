@@ -95,3 +95,35 @@ class GetType:
                          ) -> list[str]:
         """drop parentheses from the names"""
         return [re.sub(r'[()]', '', item) for item in lst]
+
+
+class WriteParam(GetType):
+    """write parameters in json format"""
+    def __init__(self,
+                 data: cllmp.CleanData  # Read data to set types
+                 ) -> None:
+        super().__init__(data)
+        self.write_params()
+
+    def write_params(self) -> None:
+        """write the parameters in json by calling methods"""
+        with open('param.json', 'w') as f:
+            self.write_atoms(f)
+
+    def write_atoms(self,
+                    f: typing.TextIO  # To write into
+                    ) -> None:
+        """write atoms in the LJ section into the output file"""
+        #   atom_name    mass   sigma epsilom charge  style  type
+        print(self.atoms)
+        f.write(f'"atoms": [\n')
+        f.write(f'\t{{\n')
+        for i, row in self.atoms.iterrows():
+            f.write(f'\t"type": {row["type"]}, '
+                    f'"name": "{row["atom_name"]}", '
+                    f'"sigma": {row["sigma"]},\t'
+                    f'"epsilon": {row["epsilon"]}, '
+                    f'"mass": {row["mass"]}, '
+                    f'"charge": {row["charge"]},\n')
+        f.write(f'\t}}\n')
+        f.write(f'  ],\n')  # 2 spaces before closing bracket
