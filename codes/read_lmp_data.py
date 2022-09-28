@@ -193,13 +193,13 @@ class Header:
             typ = int(line.split(' ')[0])
             mass = float(line.split(' ')[1])
             try:
-                try:
-                    name = line.split('#')[1].strip()
-                    all_name = name.strip().split(' ')
+                name = line.split('#')[1].strip()
+                all_name = name.strip().split(' ')
+                if len(all_name) > 1:
                     atom_name = all_name[0]
                     bond_name = all_name[1]
-                except IndexError:
-                    atom_name = line.split('#')[1].strip()[1]
+                else:
+                    atom_name = line.split('#')[1].strip()
                     bond_name = atom_name
             except IndexError:
                 exit(f'{bcolors.FAIL}\tAtoms name in the `Masses` '
