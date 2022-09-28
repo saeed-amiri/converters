@@ -44,12 +44,12 @@ class ReadParam:
                   ) -> pd.DataFrame:  # Atoms LJ information
         """convert info to dataframe"""
         columns: list[str]  # Columns for the df
-        columns = ['atom_name', 'mass', 'sigma', 'epsilom', 'charge', 'style']
+        columns = ['atom_name', 'mass', 'sigma', 'epsilon', 'charge', 'style']
         df = pd.DataFrame(columns=columns)
         atom_name: list[str] = []  # To save from each line
         mass: list[str] = []  # To save from each line
         sigma: list[str] = []  # To save from each line
-        epsilom: list[str] = []  # To save from each line
+        epsilon: list[str] = []  # To save from each line
         charge: list[str] = []  # To save from each line
         style: list[str] = []  # To save from each line
         for item in atoms:
@@ -58,13 +58,13 @@ class ReadParam:
             atom_name.append(l_line[1])
             mass.append(l_line[2])
             sigma.append(l_line[3])
-            epsilom.append(l_line[4])
+            epsilon.append(l_line[4])
             charge.append(l_line[5])
             style.append(l_line[6])
         df['atom_name'] = atom_name
         df['mass'] = mass
         df['sigma'] = sigma
-        df['epsilom'] = epsilom
+        df['epsilon'] = epsilon
         df['charge'] = charge
         df['style'] = charge
         return df

@@ -134,6 +134,7 @@ class WriteParam(GetType):
                     f'"sigma": {row["sigma"]},\t'
                     f'"epsilon": {row["epsilon"]}, '
                     f'"mass": {row["mass"]}, '
+                    f'"r_cut": {"10"}, '
                     f'"charge": {row["charge"]}\n')
             if i < n_line-1:
                 f.write(f'\t}},\n')
@@ -182,8 +183,8 @@ class WriteParam(GetType):
     def write_dihedrals(self,
                         f: typing.TextIO  # To write into
                         ) -> None:
-        """write dihedrlas section into the output file"""
-        f.write(f'"dihedrlas": [\n')
+        """write dihedrals section into the output file"""
+        f.write(f'"dihedrals": [\n')
         n_line: str = len(self.dihedrals)  # Number of lines in df
         for i, row in self.dihedrals.iterrows():
             f.write(f'\t{{\n'
@@ -191,9 +192,9 @@ class WriteParam(GetType):
                     f'"name": "{row["dihedral_name"]}", '
                     f'"style": "{row["style"]}", '
                     f'"k1": {row["k1"]}, '
-                    f'"k2": {row["k1"]}, '
-                    f'"k3": {row["k1"]}, '
-                    f'"k4": {row["k1"]}\n')
+                    f'"k2": {row["k2"]}, '
+                    f'"k3": {row["k3"]}, '
+                    f'"k4": {row["k4"]}\n')
             if i < n_line-1:
                 f.write(f'\t}},\n')
             else:

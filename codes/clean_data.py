@@ -397,7 +397,8 @@ class CleanData(Bonds,  # To get Bonds_df to write into files
     def clean_data(self,
                    raw_data  # Data read by read_lmp_data scripts
                    ) -> None:
-        """call all the methods"""
+        """call all the methods, the other DataFrame are set with
+        childer classes"""
         self.Atoms_df: pd.DataFrame = raw_data.Atoms_df
         self.Masses_df: pd.DataFrame = raw_data.Masses_df
 

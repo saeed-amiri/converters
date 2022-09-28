@@ -80,7 +80,7 @@ class Car:
         df['y'] = atoms['y']  # Coordinates
         df['z'] = atoms['z']  # Coordinates
         df['mol'] = atoms['mol']  # Index of the mol
-        df['mol_name'] = ['UNK1' for _ in df.index]  # Name of the mol
+        df['mol_name'] = ['XXXX' for _ in df.index]  # Name of the mol
         df['type'] = atoms['name']  # Type of the atom
         elements: list[str] = self.get_element(atoms, cvff)  # Symbol of atoms
         df['element'] = elements
@@ -214,7 +214,7 @@ class Mdf:
         """make a list of the name for each atom inforamtion"""
         names: list[str]  # To return
         names = list(car_df['atom_name'])
-        names = [f'UNK1_1:{item}' for item in names]
+        names = [f'XXXX_1:{item}' for item in names]
         return names
 
     def mk_bonds(self,
