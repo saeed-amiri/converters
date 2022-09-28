@@ -20,7 +20,6 @@ class XYZ:
                  ) -> None:
         data = rdlmp.ReadData(fname)
         df: pd.DataFrame = self.to_xyz(data.Atoms_df)  # Atoms in xyz format
-        print(df)
         self.write_xyz(fname, df)
 
     def to_xyz(self,
