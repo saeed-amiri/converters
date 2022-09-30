@@ -1,5 +1,3 @@
-import itertools
-from pprint import pprint
 import re
 import typing
 import pandas as pd
