@@ -1,3 +1,4 @@
+import os
 import sys
 import typing
 import pandas as pd
@@ -35,8 +36,17 @@ class Header:
         print(f'{bcolors.OKCYAN}{self.__class__.__name__}:\n'
               f'\tReading: `{self.infile}`{bcolors.ENDC}\n')
         self.atomsLine: int
+        self.file_exist(infile)
         self.atomsLine = self.check_file()
         self.read_header()
+
+    def file_exist(self,
+                    fname: str  # Name of the input file
+                    ) -> None:
+        """check if the file is exist"""
+        if not os.path.exists(fname):
+            exit(f'\t{bcolors.FAIL}Error! `{fname}` does not exist!'
+                 f'{bcolors.ENDC}\n')
 
     def check_file(self) -> int:
         """ Check header
