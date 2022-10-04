@@ -1,7 +1,7 @@
-from ast import Index
 import sys
 import pandas as pd
 import read_lmp_data as rdlmp
+from colors_text import TextColor as bcolors
 
 
 class Doc:
@@ -18,6 +18,8 @@ class XYZ:
     def __init__(self,
                  fname: str  # Name of the input file
                  ) -> None:
+        print(f'{bcolors.OKCYAN}{self.__class__.__name__}:\n'
+              f'\tConverting `{fname}` to XYZ file{bcolors.ENDC}\n')
         data = rdlmp.ReadData(fname)
         df: pd.DataFrame = self.to_xyz(data.Atoms_df)  # Atoms in xyz format
         self.write_xyz(fname, df)
