@@ -110,7 +110,6 @@ class WriteLmp(GetData):
         self.write_box(f)
         self.write_masses(self.obj.Masses_df, f)
 
-
     def write_body(self, f: typing.TextIO) -> None:
         """write the body of the data file, including:
             atoms, bonds, angles, dihedrals
@@ -302,13 +301,13 @@ class WriteLmp(GetData):
             df1['style'] = ''
             df1['kbond'] = ''
             df1['r'] = ''
-            self.Bonds_param : dict[typing.Any, list[typing.Any]]
+            self.Bonds_param: dict[typing.Any, list[typing.Any]]
             self.Bonds_param = df1.to_dict(orient='records')
         elif char == 'angles':
             df1['style'] = ''
             df1['kangle'] = ''
             df1['angle'] = ''
-            self.Angles_param : dict[typing.Any, list[typing.Any]]
+            self.Angles_param: dict[typing.Any, list[typing.Any]]
             self.Angles_param = df1.to_dict(orient='records')
         elif char == 'dihedrals':
             df1['style'] = ''
@@ -316,7 +315,7 @@ class WriteLmp(GetData):
             df1['k2'] = ''
             df1['k3'] = ''
             df1['k4'] = ''
-            self.Dihedrals_param : dict[typing.Any, list[typing.Any]]
+            self.Dihedrals_param: dict[typing.Any, list[typing.Any]]
             self.Dihedrals_param = df1.to_dict(orient='records')
         with open(jfile, 'a') as f:
             f.write(f'#{char} {"info":<30}\n')

@@ -1,4 +1,6 @@
+import re
 import sys
+import csv
 import pandas as pd
 import read_lmp_data as rdlmp
 from colors_text import TextColor as bcolors
@@ -31,10 +33,14 @@ class XYZ:
         columns: list[str]  # Columns for xyz file
         columns = ['name', 'x', 'y', 'z']
         df = pd.DataFrame(columns=columns)
-        df['name'] = atoms['b_name']
+        # print(atoms['b_name'])
+        # df['name'] = atoms['b_name']
         df['x'] = atoms['x']
         df['y'] = atoms['y']
         df['z'] = atoms['z']
+        df['name'] = self.clean_names(atoms['b_name'])
+        df = df.astype({'name': str, 'x': float, 'y': float, 'z': float})
+        print(df)
         return df
 
     def write_xyz(self,
@@ -46,7 +52,19 @@ class XYZ:
         with open(fout, 'w') as f:
             f.write(f'{len(df)}\n')
             f.write(f'\n')
-            df.to_csv(f, sep=' ', index=False, header=None)
+            df.to_csv(f, sep=' ', index=False, header=None,
+                      quoting=csv.QUOTE_NONE)
+
+    def clean_names(self,
+                    names: list[str]  # Names of the atoms
+                    ) -> list[str]:  # Cleaned names
+        """remove special chars and return in capitalize first letter
+        format"""
+        lst = [item.capitalize() for item in names]
+        lst = [re.sub(r'[^a-zA-Z]', '', s) for s in names]
+        lst = [item.capitalize() for item in names]
+        names = lst
+        return names
 
 
 if __name__ == '__main__':

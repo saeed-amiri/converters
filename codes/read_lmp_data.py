@@ -41,8 +41,8 @@ class Header:
         self.read_header()
 
     def file_exist(self,
-                    fname: str  # Name of the input file
-                    ) -> None:
+                   fname: str  # Name of the input file
+                   ) -> None:
         """check if the file is exist"""
         if not os.path.exists(fname):
             exit(f'\t{bcolors.FAIL}Error! `{fname}` does not exist!'
