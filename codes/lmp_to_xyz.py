@@ -33,8 +33,6 @@ class XYZ:
         columns: list[str]  # Columns for xyz file
         columns = ['name', 'x', 'y', 'z']
         df = pd.DataFrame(columns=columns)
-        # print(atoms['b_name'])
-        # df['name'] = atoms['b_name']
         df['x'] = atoms['x']
         df['y'] = atoms['y']
         df['z'] = atoms['z']
