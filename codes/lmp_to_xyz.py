@@ -38,7 +38,6 @@ class XYZ:
         df['z'] = atoms['z']
         df['name'] = self.clean_names(atoms['b_name'])
         df = df.astype({'name': str, 'x': float, 'y': float, 'z': float})
-        print(df)
         return df
 
     def write_xyz(self,
