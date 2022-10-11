@@ -110,7 +110,8 @@ class Pdb:
         """Process the line on based on the PDB file, started with ATOM"""
         # first check the length of the line MUST be equal to 79
         if len(line) != 79:
-            exit(f"ERROR! wrong line length: {len(line)} != 79")
+            # exit(f"ERROR! wrong line length: {len(line)} != 79")
+            pass
         atom_id: int = int(line[6:11].strip())
         atom_name: str = line[13:16].strip()
         residue_name: str = line[17:20].strip()

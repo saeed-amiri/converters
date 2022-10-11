@@ -1,4 +1,3 @@
-from dataclasses import replace
 import sys
 import typing
 import pandas as pd
@@ -129,6 +128,7 @@ class Itp:
                     break
         atom = AtomsInfo(atoms_info)
         bond = BondsInfo(atoms=atom.df, bonds=bonds_info)
+        print(bond)
         angle = AnglesInfo(atoms=atom.df, angles=angles_info)
         dihedral = DihedralsInfo(atoms=atom.df, dihedrals=dihedrals_info)
         self.atoms_extra = atom.df
@@ -151,8 +151,11 @@ class AtomsInfo:
         l_line: list[str]  # Breaking the line cahrs
         # Check if header of the atoms section is same as the defeined one
         columns: list[str]   # columns for the atoms dict, name of each column
+        columns_al: list[str]   # Alternative columns names
         columns = ['atomnr', 'atomtype', 'resnr', 'resname', 'atomname',
                    'chargegrp', 'charge', 'mass']
+        columns_al = ['nr', 'type', 'resnr', 'resid', 'atom',
+                    'cgnr', 'charge', 'mass']
         atomnr: list[typing.Any] = []  # list to append info: atoms id
         atomtype: list[typing.Any] = []  # list to append info: forcefield type
         resnr: list[typing.Any] = []  # list to append info: res infos
@@ -165,12 +168,16 @@ class AtomsInfo:
         atomsty: list[typing.Any] = []  # list to append info: name with style
         chemi: list[typing.Any] = []  # list to append info: name with alkane
         name: list[typing.Any] = []  # list to append info: real name
+        columns_falg: bool = False  # if 10 columns data
+        columns_al_flag: bool = False  # if 8 columns data
         for line in atoms:
             if line.startswith(';'):  # line start with ';' are commets&header
                 l_line = free_char_line(line)
                 if 'Total' not in l_line:  # Not header!
                     if l_line == columns:
-                        pass
+                        columns_falg = True
+                    elif l_line == columns_al:
+                        columns_al_flag = True
                     else:
                         exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
                              f'\tError in the [ atoms ] header of the '
@@ -185,9 +192,10 @@ class AtomsInfo:
                 chargegrp.append(l_line[5])
                 charge.append(l_line[6])
                 mass.append(l_line[7])
-                atomsty.append(l_line[8])
-                chemi.append(l_line[9])
-                name.append(l_line[10])
+                if columns_falg:
+                    atomsty.append(l_line[8])
+                    chemi.append(l_line[9])
+                    name.append(l_line[10])
         df: pd.DataFrame  # DataFrame from the infos
         df = pd.DataFrame(columns=columns)
         df['atomnr'] = atomnr
@@ -198,9 +206,12 @@ class AtomsInfo:
         df['chargegrp'] = chargegrp
         df['charge'] = charge
         df['mass'] = mass
-        df['atomsty'] = atomsty
-        df['chemi'] = chemi
-        df['name'] = self.drop_dot(name)
+        if columns_falg:
+            df['atomsty'] = atomsty
+            df['chemi'] = chemi
+            df['name'] = self.drop_dot(name)
+        elif columns_al_flag:
+            df['atomsty'] = atomname
         return df
 
     def drop_dot(self,
@@ -235,6 +246,7 @@ class BondsInfo:
         """return bonds dataframe to make bonds dataframe"""
         columns: list[str]  # Columns of the bonds wild
         columns = ['ai', 'aj', 'funct', 'r', 'k']
+        columns_al =  ['ai', 'aj', 'fu']
         ai: list[int] = []  # index of the 1st atoms in the bonds
         aj: list[int] = []  # index of the 2nd atoms in the bonds
         names: list[str] = []  # name of the bonds
@@ -242,7 +254,7 @@ class BondsInfo:
             if line.startswith(';'):  # line start with ';' are commets&header
                 l_line = free_char_line(line)
                 if 'Total' not in l_line:  # Not header!
-                    if l_line == columns:
+                    if l_line == columns or l_line == columns_al:
                         pass
                     else:
                         exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
@@ -286,9 +298,9 @@ class BondsInfo:
         aj_name = [atoms.loc[atoms['atomnr'] == str(item)]['atomsty'][item-1]
                    for item in df['aj']]
         names: list[str] = [f'{i}-{j}' for i, j in zip(ai_name, aj_name)]
-        if list(df['name']) != names:
-            exit(f'{bcolors.FAIL}\tError! in the bonds and atoms name!'
-                 f'{bcolors.ENDC}')
+        # if list(df['name']) != names:
+            # exit(f'{bcolors.FAIL}\tError! in the bonds and atoms name!'
+                #  f'{bcolors.ENDC}')
 
 
 class AnglesInfo:
@@ -377,9 +389,9 @@ class AnglesInfo:
                    for item in df['ak']]
         names: list[str] = [f'{i}-{j}-{k}' for i, j, k
                             in zip(ai_name, aj_name, ak_name)]
-        if list(df['name']) != names:
-            exit(f'{bcolors.FAIL}\tError! in the angles and atoms name!'
-                 f'{bcolors.ENDC}')
+        # if list(df['name']) != names:
+            # exit(f'{bcolors.FAIL}\tError! in the angles and atoms name!'
+                #  f'{bcolors.ENDC}')
 
 
 class DihedralsInfo:
