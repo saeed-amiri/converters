@@ -96,7 +96,7 @@ class WriteLmp(GetData):
         with open(self.fname, 'w') as f:
             self.write_header(f)
             self.write_body(f)
-        self.write_comb_json()  # write json of combination
+        # self.write_comb_json()  # write json of combination
 
     def write_header(self, f: typing.TextIO) -> None:
         """write header of the file, including:
@@ -181,6 +181,7 @@ class WriteLmp(GetData):
                        'nx', 'ny', 'nz', 'cmt', 'name']
             f.write(f'Atoms # full\n')
             f.write(f'\n')
+            df.sort_values(by=['atom_id'], axis=0, inplace=True)
             df = df.astype({'x': float, 'y':  float, 'z': float})
             df.to_csv(f, sep=' ', index=False, columns=columns, header=None,
                       float_format='%.8f')
