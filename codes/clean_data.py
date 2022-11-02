@@ -389,7 +389,7 @@ class CleanData(Bonds,  # To get Bonds_df to write into files
         raw_data = rdlmp.ReadData(fname)
         Bonds.__init__(self, raw_data)
         Angles.__init__(self, raw_data)
-        # Dihedrals.__init__(self, raw_data)
+        Dihedrals.__init__(self, raw_data)
         self.clean_data(raw_data)
 
     def clean_data(self,
