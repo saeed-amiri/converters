@@ -20,7 +20,9 @@ class Doc:
 
 
 fname: str = sys.argv[1]  # File name to convert
+f_name: str  # Name of theh data file
 f_extansion: str  # Extension of the file to call proper function
+f_name = fname.split('.')[0]
 f_extansion = fname.split('.')[1]
 output_fname = f'{fname.split(".")[0]}_lmp.data'
 if f_extansion == 'json':
@@ -29,7 +31,7 @@ elif f_extansion == 'itp':
     data = ipl.ItpPdb(fname.split('.')[0])
 elif f_extansion == 'data':
     data = cllmp.CleanData(fname)
-    output_fname = f'CTAB_lmp.data'
-    prm = rdprm.WriteParam(data, output_fname)
+    output_fname = f'{f_name}_clean.data'
+    # prm = rdprm.WriteParam(data, output_fname)
 wrt = lmpwrt.WriteLmp(data, output_fname)
 wrt.write_lmp()
