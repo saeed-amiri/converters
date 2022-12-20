@@ -188,7 +188,10 @@ class Dihedrals:
     def __init__(self,
                  raw_data: rdlmp.ReadData  # raw data to clean the angles
                  ) -> None:
-        self.Dihedrals_df: pd.DataFrame = self.get_dihedrals(raw_data)
+        try:
+            self.Dihedrals_df: pd.DataFrame = self.get_dihedrals(raw_data)
+        except KeyError:
+            pass
 
     def get_dihedrals(self,
                       raw_data: rdlmp.ReadData  # raw data to clean the dihedra
