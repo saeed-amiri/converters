@@ -105,7 +105,10 @@ class Angles:
     def __init__(self,
                  raw_data: rdlmp.ReadData  # raw data to clean the angles
                  ) -> None:
-        self.Angles_df: pd.DataFrame = self.get_angles(raw_data)  # Angles
+        try:
+            self.Angles_df: pd.DataFrame = self.get_angles(raw_data)  # Angles
+        except KeyError:
+            pass
 
     def get_angles(self,
                    raw_data: rdlmp.ReadData  # raw data to clean the angles
