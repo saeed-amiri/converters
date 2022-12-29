@@ -361,11 +361,12 @@ class Body(Header):
             i_x = float(line[i_col + 1])
             i_y = float(line[i_col + 2])
             i_z = float(line[i_col + 3])
-            i_name = self.Names[i_typ]
             if not self.GROMACS_flag:
                 i_bond_name = self.Bonds_Names[i_typ]
+                i_name = self.Names[i_typ]
             else:
-                i_bond_name = 'Nan'
+                i_name = self.Names[i_typ][0]
+                i_bond_name = self.Names[i_typ][2]
             try:
                 i_nx = int(line[i_col + 4])
                 i_ny = int(line[i_col + 5])
