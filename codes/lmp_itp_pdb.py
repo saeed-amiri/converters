@@ -28,4 +28,5 @@ class ReadLmp:
 
 
 if __name__ == '__main__':
-    lmp: relmp.ReadData = ReadLmp(sys.argv[1])  # All data in input file
+    lmp: relmp.ReadData = relmp.ReadData(sys.argv[1])  # All data in input file
+    pdb = lmpdb.Pdb(lmp.Masses_df, lmp.Atoms_df)
