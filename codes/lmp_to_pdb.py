@@ -2,7 +2,6 @@ import pandas as pd
 from colors_text import TextColor as bcolors
 
 
-
 class Doc:
     """convert the Atoms section into PDB file
     Input:
@@ -110,15 +109,24 @@ class PdbStyleInfo:
         Format (A6,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,10X,A2,A2)
         """
 
+
 class Pdb:
     """convert to PDB with considers all the above concerns"""
     def __init__(self,
-                Masses_df: pd.DataFrame,  # df contains info about atoms
-                Atoms_df: pd.DataFrame  # df contains atoms' coordinats
-                ) -> None:
+                 Masses_df: pd.DataFrame,  # df contains info about atoms
+                 Atoms_df: pd.DataFrame  # df contains atoms' coordinats
+                 ) -> None:
         """call the main functions"""
         self.show_warnings()
-        self.get_atoms_info(Masses_df)
+        self.mk_pdb(Masses_df, Atoms_df)
+
+    def mk_pdb(self,
+               Masses_df: pd.DataFrame,  # df contains info about atoms
+               Atoms_df: pd.DataFrame  # df contains atoms' coordinats
+               ) -> None:
+        Masses = self.get_atoms_info(Masses_df)
+        pdb_df: pd.DataFrame = self.mk_pdb_df()  # Empty df
+        self.set_pdb(pdb_df, Masses, Atoms_df)
 
     def show_warnings(self) -> None:
         """show warnings and infos"""
@@ -127,9 +135,61 @@ class Pdb:
               f'following order:\n'
               f'\t\tid mass # Atom_nams Residue Element_symbol(CAP) '
               f'RECORD\n {bcolors.ENDC}')
-    
+
     def get_atoms_info(self,
                        Masses_df: pd.DataFrame,  # df contains info about atoms
                        ) -> pd.DataFrame:
         """get data in the Masses_df and check them"""
-        
+        Masses: pd.DataFrame = Masses_df
+        return Masses
+
+    def mk_pdb_df(self) -> pd.DataFrame:
+        """make pdb dataframe"""
+        pdb_df: pd.DataFrame  # The main df for pdb file
+        columns: list[str]  # names of the columns of the pdb
+        columns = ['records',
+                   'atom_id',  # integer
+                   'atom_name',  # left character
+                   'l_indicator0',  # character
+                   'residue_name',  # right character
+                   'chain_id',  # character
+                   'residue_id'  # right integer
+                   'Code_residues',  # character
+                   'x',  # orthogonal Å coordinate right real (8.3)
+                   'y',  # orthogonal Å coordinate right real (8.3)
+                   'z',  # orthogonal Å coordinate right real (8.3)
+                   'occupancy',  # right real (6.2)
+                   'temperature',  # right real (6.2)
+                   'Segment_id',  # left character
+                   'element',  # right character
+                   'charge'  # character
+                   ]
+        pdb_df = pd.DataFrame(columns=columns)
+        return pdb_df
+
+    def set_pdb(self,
+                pdb_df: pd.DataFrame,  # Empty df with columns name
+                Masses: pd.DataFrame,  # Checked Masses section
+                Atoms_df: pd.DataFrame  # Atoms coordinates
+                ) -> pd.DataFrame:
+        """set columns of the df"""
+        pdb_df['atom_id'] = Atoms_df['atom_id']
+        pdb_df['x'] = Atoms_df['x']
+        pdb_df['y'] = Atoms_df['y']
+        pdb_df['z'] = Atoms_df['z']
+        names: list[str] = []  # Name of the atoms from Masses
+        elements: list[str] = []  # Symbole for each atom
+        residues: list[str] = []  # Names of each residues
+        records: list[str] = []  # Records of each atom
+        # Get the atoms names
+        for item in Atoms_df['typ']:
+            df_row = Masses[Masses['typ'] == item]
+            names.append(df_row['names'][item])
+            elements.append(df_row['elements'][item])
+            residues.append(df_row['residues'][item])
+            records.append(df_row['records'][item])
+        pdb_df['atom_name'] = names
+        pdb_df['element'] = elements
+        pdb_df['residue_name'] = residues
+        pdb_df['records'] = records
+        pdb_df['chain_id'] = Atoms_df['mol']
