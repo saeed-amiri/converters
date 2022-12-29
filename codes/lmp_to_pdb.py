@@ -172,24 +172,32 @@ class Pdb:
                 Masses: pd.DataFrame,  # Checked Masses section
                 Atoms_df: pd.DataFrame  # Atoms coordinates
                 ) -> pd.DataFrame:
-        """set columns of the df"""
-        pdb_df['atom_id'] = Atoms_df['atom_id']
-        pdb_df['x'] = Atoms_df['x']
-        pdb_df['y'] = Atoms_df['y']
-        pdb_df['z'] = Atoms_df['z']
         names: list[str] = []  # Name of the atoms from Masses
         elements: list[str] = []  # Symbole for each atom
         residues: list[str] = []  # Names of each residues
         records: list[str] = []  # Records of each atom
-        # Get the atoms names
+        """set columns of the df"""
         for item in Atoms_df['typ']:
             df_row = Masses[Masses['typ'] == item]
             names.append(df_row['names'][item])
             elements.append(df_row['elements'][item])
             residues.append(df_row['residues'][item])
             records.append(df_row['records'][item])
+        self.fix_atom_names(names, Atoms_df['mol'])
         pdb_df['atom_name'] = names
         pdb_df['element'] = elements
         pdb_df['residue_name'] = residues
         pdb_df['records'] = records
         pdb_df['chain_id'] = Atoms_df['mol']
+        pdb_df['atom_id'] = Atoms_df['atom_id']
+        pdb_df['x'] = Atoms_df['x']
+        pdb_df['y'] = Atoms_df['y']
+        pdb_df['z'] = Atoms_df['z']
+
+    def fix_atom_name(self,
+                      names: list[str],  # Name of the atoms from LAMMPS
+                      mol_id: list[int]  # Id of each mol
+                      ) -> list[str]:
+        """Make the names by adding index to each similar name"""
+        # First seprate residues = having same mol index
+        
