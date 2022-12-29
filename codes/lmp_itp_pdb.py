@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import read_lmp_data as relmp
+import lmp_to_pdb as lmpdb
 
 
 class Doc:
