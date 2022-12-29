@@ -200,14 +200,29 @@ class Header:
     def get_masses(self, line: str, check: str) -> None:
         # stting the nth row of the dictionary
         if check not in line:
+            self.GROMACS_flag: bool  # If to convert to GROMACS pdb and itp
+            self.GROMACS_flag = False
             typ = int(line.split(' ')[0])
             mass = float(line.split(' ')[1])
             try:
                 name = line.split('#')[1].strip()
                 all_name = name.strip().split(' ')
-                if len(all_name) > 1:
+                all_name = [item for item in all_name if item]
+                atoms_info_len: int  # Numbers of chars in Masses section
+                atoms_info_len = len(all_name)
+                if atoms_info_len == 2:
                     atom_name = all_name[0]
                     bond_name = all_name[1]
+                elif atoms_info_len == 3:  # Data problem
+                    atom_name = all_name[0]
+                    bond_name = all_name[1]
+                    print(f'{bcolors.WARNING}read_data:\n'
+                          f'\t Unclear style in the Masses section:'
+                          f'\t{all_name}\n'
+                          f'{bcolors.ENDC}')
+                elif atoms_info_len == 4:  # Get data for GROMACS
+                    atom_name = all_name
+                    self.GROMACS_flag = True
                 else:
                     atom_name = line.split('#')[1].strip()
                     bond_name = atom_name
@@ -217,7 +232,10 @@ class Header:
                      f'Masses\n\t\t1 1 # X{bcolors.ENDC}')
             self.Masses[typ] = mass
             self.Names[typ] = atom_name
-            self.Bonds_Names[typ] = bond_name
+            if not self.GROMACS_flag:
+                self.Bonds_Names[typ] = bond_name
+            else:
+                self.Bonds_Names[typ] = 'Nan'
 
     def get_pair_coeff(self, line, check) -> None:
         # stting the nth row of the dictionary
@@ -344,7 +362,10 @@ class Body(Header):
             i_y = float(line[i_col + 2])
             i_z = float(line[i_col + 3])
             i_name = self.Names[i_typ]
-            i_bond_name = self.Bonds_Names[i_typ]
+            if not self.GROMACS_flag:
+                i_bond_name = self.Bonds_Names[i_typ]
+            else:
+                i_bond_name = 'Nan'
             try:
                 i_nx = int(line[i_col + 4])
                 i_ny = int(line[i_col + 5])
@@ -501,8 +522,24 @@ class Body(Header):
             b_names_list.append(self.Bonds_Names[k])
             cmt_list.append('#')
         Masses_df['cmt'] = cmt_list
-        Masses_df['name'] = names_list
-        Masses_df['b_name'] = b_names_list
+        if not self.GROMACS_flag:
+            Masses_df['name'] = names_list
+            Masses_df['b_name'] = b_names_list
+        else:
+            names: list[str] = []  # Atoms names
+            residues: list[str] = []  # Residues names
+            elements: list[str] = []  # Elements' symbols
+            records: list[str] = []  # ATOMS or HATOM or TER
+            for key in self.Names.keys():
+                names.append(self.Names[key][0])
+                residues.append(self.Names[key][1])
+                elements.append(self.Names[key][2])
+                records.append(self.Names[key][3])
+            Masses_df['names'] = names
+            Masses_df['residues'] = residues
+            Masses_df['elements'] = elements
+            Masses_df['records'] = records
+            
         return Masses_df
 
 
