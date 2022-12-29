@@ -1,4 +1,6 @@
 import pandas as pd
+from colors_text import TextColor as bcolors
+
 
 
 class Doc:
@@ -115,10 +117,19 @@ class Pdb:
                 Atoms_df: pd.DataFrame  # df contains atoms' coordinats
                 ) -> None:
         """call the main functions"""
+        self.show_warnings()
         self.get_atoms_info(Masses_df)
+
+    def show_warnings(self) -> None:
+        """show warnings and infos"""
+        print(f'{bcolors.WARNING}Pdb:\n'
+              f'\t Masses section in the input file should be in the '
+              f'following order:\n'
+              f'\t\tid mass # Atom_nams Residue Element_symbol(CAP) '
+              f'RECORD\n {bcolors.ENDC}')
     
     def get_atoms_info(self,
                        Masses_df: pd.DataFrame,  # df contains info about atoms
                        ) -> pd.DataFrame:
         """get data in the Masses_df and check them"""
-        print(Masses_df)
+        
