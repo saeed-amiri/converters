@@ -5,7 +5,7 @@ class Doc:
     """convert the Atoms section into PDB file
     Input:
         LAMMPS data file from lmp_itp_pdb.py:
-            Atoms_df, Mass_df
+            Atoms_df, Masses_df
     Output:
         pd.DataFrame for pdb file
 
@@ -107,3 +107,18 @@ class PdbStyleInfo:
         The format of ecah section is (fortran style):
         Format (A6,I5,1X,A4,A1,A3,1X,A1,I4,A1,3X,3F8.3,2F6.2,10X,A2,A2)
         """
+
+class Pdb:
+    """convert to PDB with considers all the above concerns"""
+    def __init__(self,
+                Masses_df: pd.DataFrame,  # df contains info about atoms
+                Atoms_df: pd.DataFrame  # df contains atoms' coordinats
+                ) -> None:
+        """call the main functions"""
+        self.get_atoms_info(Masses_df)
+    
+    def get_atoms_info(self,
+                       Masses_df: pd.DataFrame,  # df contains info about atoms
+                       ) -> pd.DataFrame:
+        """get data in the Masses_df and check them"""
+        print(Masses_df)
