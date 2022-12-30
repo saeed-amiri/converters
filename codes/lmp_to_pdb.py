@@ -1,6 +1,6 @@
 import pandas as pd
+from collections import Counter
 from colors_text import TextColor as bcolors
-
 
 class Doc:
     """convert the Atoms section into PDB file
@@ -183,7 +183,7 @@ class Pdb:
             elements.append(df_row['elements'][item])
             residues.append(df_row['residues'][item])
             records.append(df_row['records'][item])
-        self.fix_atom_names(names, Atoms_df['mol'])
+        names = self.fix_atom_names(names, Atoms_df['mol'])
         pdb_df['atom_name'] = names
         pdb_df['element'] = elements
         pdb_df['residue_name'] = residues
@@ -193,11 +193,22 @@ class Pdb:
         pdb_df['x'] = Atoms_df['x']
         pdb_df['y'] = Atoms_df['y']
         pdb_df['z'] = Atoms_df['z']
+        # print(pdb_df)
 
-    def fix_atom_name(self,
+    def fix_atom_names(self,
                       names: list[str],  # Name of the atoms from LAMMPS
                       mol_id: list[int]  # Id of each mol
                       ) -> list[str]:
         """Make the names by adding index to each similar name"""
         # First seprate residues = having same mol index
-        
+        # Get the repeated item by counter and rename them
+        name_id: dict[str, list[int]] = {a:list(range(1, b+1)) if b>1 else '' 
+                                         for a,b in Counter(names).items()}
+        name_id = [f'{i}{str(name_id[i].pop(0))}' if len(name_id[i])
+                   else i for i in names]
+        for i, name in enumerate(name_id):
+            if len(name) > 4:
+                print(f'{bcolors.WARNING}\tWarning:\n'
+                      f'\t\tLenght of item {i}: {name} '
+                      f'is longer than 4, consider renaming atoms\n')
+        return name_id
