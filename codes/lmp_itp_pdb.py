@@ -48,23 +48,6 @@ class WritePdb:
             for row in pdb_df.iterrows():
                 line: list[str]  # line with length of pdb line fill by spaces
                 line = [' '*79]
-                """columns = ['records',
-                   'atom_id',  # integer
-                   'atom_name',  # left character
-                   'l_indicator',  # character
-                   'residue_name',  # right character
-                   'chain_id',  # character
-                   'residue_id'  # right integer
-                   'Code_residues',  # character
-                   'x',  # orthogonal Å coordinate right real (8.3)
-                   'y',  # orthogonal Å coordinate right real (8.3)
-                   'z',  # orthogonal Å coordinate right real (8.3)
-                   'occupancy',  # right real (6.2)
-                   'temperature',  # right real (6.2)
-                   'Segment_id',  # left character
-                   'element',  # right character
-                   'charge'  # character
-                   ]"""
                 line[0:6] = f'{row[1]["records"]:<6s}'
                 line[6:11] = f'{row[1]["atom_id"]:>5d}'
                 line[11:12] = f' '
