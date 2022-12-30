@@ -43,6 +43,10 @@ class Doc:
             55-60	Occupancy	                right	real (6.2)
             61-66	Temperature factor	        right	real (6.2)
             73-76	Segment identifier¶	        left	character
+        ? For Occupancy:
+        > equal to 1, see:
+        `https://pdb101.rcsb.org/learn/guide-to-understanding-pdb-data/
+        dealing-with-coordinates`
 
     """
 
@@ -127,7 +131,7 @@ class Pdb:
                ) -> None:
         Masses = self.get_atoms_info(Masses_df)
         pdb_df: pd.DataFrame = self.mk_pdb_df()  # Empty df
-        self.set_pdb(pdb_df, Masses, Atoms_df)
+        pdb_df = self.set_pdb(pdb_df, Masses, Atoms_df)
 
     def show_warnings(self) -> None:
         """show warnings and infos"""
@@ -151,7 +155,7 @@ class Pdb:
         columns = ['records',
                    'atom_id',  # integer
                    'atom_name',  # left character
-                   'l_indicator0',  # character
+                   'l_indicator',  # character
                    'residue_name',  # right character
                    'chain_id',  # character
                    'residue_id'  # right integer
@@ -196,7 +200,14 @@ class Pdb:
         pdb_df['x'] = Atoms_df['x']
         pdb_df['y'] = Atoms_df['y']
         pdb_df['z'] = Atoms_df['z']
-        print(pdb_df)
+        pdb_df['l_indicator'] = ['A' for _ in names]
+        pdb_df['occupancy'] = ['1.0' for _ in names]
+        empty_data: list[str] = [' ' for _ in names]
+        pdb_df['temperature'] = empty_data
+        pdb_df['Segment_id'] = empty_data
+        pdb_df['residue_idCode_residues'] = empty_data
+        pdb_df['charge'] = empty_data
+        return pdb_df
 
     def fix_atom_names(self,
                        names: list[str],  # Name of the atoms from LAMMPS
