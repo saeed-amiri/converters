@@ -2,6 +2,7 @@ import pandas as pd
 from collections import Counter
 from colors_text import TextColor as bcolors
 
+
 class Doc:
     """convert the Atoms section into PDB file
     Input:
@@ -133,7 +134,7 @@ class Pdb:
         print(f'{bcolors.WARNING}Pdb:\n'
               f'\t Masses section in the input file should be in the '
               f'following order:\n'
-              f'\t\tid mass # Atom_nams Residue Element_symbol(CAP) '
+              f'\t\tid mass # Atom_names Residue Element_symbol(CAP) '
               f'RECORD\n {bcolors.ENDC}')
 
     def get_atoms_info(self,
@@ -183,7 +184,9 @@ class Pdb:
             elements.append(df_row['elements'][item])
             residues.append(df_row['residues'][item])
             records.append(df_row['records'][item])
-        names = self.fix_atom_names(names, Atoms_df['mol'])
+        names = self.fix_atom_names(names,
+                                    Atoms_df['mol'],
+                                    Atoms_df['atom_id'])
         pdb_df['atom_name'] = names
         pdb_df['element'] = elements
         pdb_df['residue_name'] = residues
@@ -193,19 +196,44 @@ class Pdb:
         pdb_df['x'] = Atoms_df['x']
         pdb_df['y'] = Atoms_df['y']
         pdb_df['z'] = Atoms_df['z']
-        # print(pdb_df)
+        print(pdb_df)
 
     def fix_atom_names(self,
-                      names: list[str],  # Name of the atoms from LAMMPS
-                      mol_id: list[int]  # Id of each mol
-                      ) -> list[str]:
-        """Make the names by adding index to each similar name"""
+                       names: list[str],  # Name of the atoms from LAMMPS
+                       mol_id: list[int],  # Id of each mol
+                       atom_id: list[int]  # Id of the atoms
+                       ) -> list[str]:
+        """make the names by adding index to each similar name"""
         # First seprate residues = having same mol index
+        names_id_df: pd.DataFrame  # df of names and mol_id
+        names_id_df = pd.DataFrame({'atom_id': atom_id,
+                                    'names': names,
+                                    'mol_id': mol_id
+                                    })
+        watch_id: list[int]  # uniqe mol id in the mol_id
+        watch_id = list(set(mol_id))
+        mol_list: list[pd.DataFrame] = []  # df with one mol id
+        for mol in watch_id:
+            df: pd.DataFrame = names_id_df[names_id_df['mol_id'] == mol]
+            id_name: list[str] = self.rename_atoms(df['names'])
+            df['id_name'] = id_name
+            mol_list.append(df)
+        rename_df: pd.DataFrame  # df with updated names to orderd with atom id
+        rename_df = pd.concat(mol_list)
+        rename_df.drop(columns=['names'], inplace=True)
+        rename_df.sort_values(by=['atom_id'], inplace=True)
+        return rename_df['id_name']
+
+    def rename_atoms(self,
+                     names: list[str],  # Name of the atoms from LAMMPS data
+                     ) -> list[str]:
+        """rename the atoms based on thier repetetion"""
         # Get the repeated item by counter and rename them
-        name_id: dict[str, list[int]] = {a:list(range(1, b+1)) if b>1 else '' 
-                                         for a,b in Counter(names).items()}
-        name_id = [f'{i}{str(name_id[i].pop(0))}' if len(name_id[i])
-                   else i for i in names]
+        name_id_dict: dict[str, list[int]]  # Number of repeatation for each
+        name_id_dict = {a: list(range(1, b+1)) if b > 1 else ''
+                        for a, b in Counter(names).items()}
+        name_id: list[str] = [f'{i}{name_id_dict[i].pop(0)}' if
+                              len(name_id_dict[i]) else i for i in names]
         for i, name in enumerate(name_id):
             if len(name) > 4:
                 print(f'{bcolors.WARNING}\tWarning:\n'
