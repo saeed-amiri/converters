@@ -123,6 +123,8 @@ class Pdb:
                  ) -> None:
         """call the main functions"""
         self.__show_warnings()
+        # Sort Atoms_df based on the atom index
+        Atoms_df.sort_values(by=['atom_id'], inplace=True)
         self.__mk_pdb(Masses_df, Atoms_df)
 
     def __mk_pdb(self,
@@ -225,10 +227,18 @@ class Pdb:
         watch_id = list(set(mol_id))
         mol_list: list[pd.DataFrame] = []  # df with one mol id
         for mol in watch_id:
+            df1 = pd.DataFrame(columns=['atom_id'
+                                        'names'
+                                        'mol_id',
+                                        'id_name'])
             df: pd.DataFrame = names_id_df[names_id_df['mol_id'] == mol]
             id_name: list[str] = self.__rename_atoms(df['names'])
-            df['id_name'] = id_name
-            mol_list.append(df)
+            df1['atom_id'] = df['atom_id']
+            df1['names'] = df['names']
+            df1['mol_id'] = df['mol_id']
+            df1['id_name'] = id_name
+            mol_list.append(df1)
+            del df, df1
         rename_df: pd.DataFrame  # df with updated names to orderd with atom id
         rename_df = pd.concat(mol_list)
         rename_df.drop(columns=['names'], inplace=True)
