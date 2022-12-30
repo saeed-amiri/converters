@@ -122,18 +122,18 @@ class Pdb:
                  Atoms_df: pd.DataFrame  # df contains atoms' coordinats
                  ) -> None:
         """call the main functions"""
-        self.show_warnings()
-        self.mk_pdb(Masses_df, Atoms_df)
+        self.__show_warnings()
+        self.__mk_pdb(Masses_df, Atoms_df)
 
-    def mk_pdb(self,
-               Masses_df: pd.DataFrame,  # df contains info about atoms
-               Atoms_df: pd.DataFrame  # df contains atoms' coordinats
-               ) -> None:
-        Masses = self.get_atoms_info(Masses_df)
-        pdb_df: pd.DataFrame = self.mk_pdb_df()  # Empty df
-        pdb_df = self.set_pdb(pdb_df, Masses, Atoms_df)
+    def __mk_pdb(self,
+                 Masses_df: pd.DataFrame,  # df contains info about atoms
+                 Atoms_df: pd.DataFrame  # df contains atoms' coordinats
+                 ) -> None:
+        Masses = self.__get_atoms_info(Masses_df)
+        pdb_df: pd.DataFrame = self.__mk_pdb_df()  # Empty df
+        self.pdb_df = self.__set_pdb(pdb_df, Masses, Atoms_df)
 
-    def show_warnings(self) -> None:
+    def __show_warnings(self) -> None:
         """show warnings and infos"""
         print(f'{bcolors.WARNING}Pdb:\n'
               f'\t Masses section in the input file should be in the '
@@ -141,14 +141,14 @@ class Pdb:
               f'\t\tid mass # Atom_names Residue Element_symbol(CAP) '
               f'RECORD\n {bcolors.ENDC}')
 
-    def get_atoms_info(self,
-                       Masses_df: pd.DataFrame,  # df contains info about atoms
-                       ) -> pd.DataFrame:
+    def __get_atoms_info(self,
+                         Masses_df: pd.DataFrame,  # df contains atoms' info
+                         ) -> pd.DataFrame:
         """get data in the Masses_df and check them"""
         Masses: pd.DataFrame = Masses_df
         return Masses
 
-    def mk_pdb_df(self) -> pd.DataFrame:
+    def __mk_pdb_df(self) -> pd.DataFrame:
         """make pdb dataframe"""
         pdb_df: pd.DataFrame  # The main df for pdb file
         columns: list[str]  # names of the columns of the pdb
@@ -172,11 +172,11 @@ class Pdb:
         pdb_df = pd.DataFrame(columns=columns)
         return pdb_df
 
-    def set_pdb(self,
-                pdb_df: pd.DataFrame,  # Empty df with columns name
-                Masses: pd.DataFrame,  # Checked Masses section
-                Atoms_df: pd.DataFrame  # Atoms coordinates
-                ) -> pd.DataFrame:
+    def __set_pdb(self,
+                  pdb_df: pd.DataFrame,  # Empty df with columns name
+                  Masses: pd.DataFrame,  # Checked Masses section
+                  Atoms_df: pd.DataFrame  # Atoms coordinates
+                  ) -> pd.DataFrame:
         names: list[str] = []  # Name of the atoms from Masses
         elements: list[str] = []  # Symbole for each atom
         residues: list[str] = []  # Names of each residues
@@ -188,9 +188,9 @@ class Pdb:
             elements.append(df_row['elements'][item])
             residues.append(df_row['residues'][item])
             records.append(df_row['records'][item])
-        names = self.fix_atom_names(names,
-                                    Atoms_df['mol'],
-                                    Atoms_df['atom_id'])
+        names = self.__fix_atom_names(names,
+                                      Atoms_df['mol'],
+                                      Atoms_df['atom_id'])
         pdb_df['atom_name'] = names
         pdb_df['element'] = elements
         pdb_df['residue_name'] = residues
@@ -209,11 +209,11 @@ class Pdb:
         pdb_df['charge'] = empty_data
         return pdb_df
 
-    def fix_atom_names(self,
-                       names: list[str],  # Name of the atoms from LAMMPS
-                       mol_id: list[int],  # Id of each mol
-                       atom_id: list[int]  # Id of the atoms
-                       ) -> list[str]:
+    def __fix_atom_names(self,
+                         names: list[str],  # Name of the atoms from LAMMPS
+                         mol_id: list[int],  # Id of each mol
+                         atom_id: list[int]  # Id of the atoms
+                         ) -> list[str]:
         """make the names by adding index to each similar name"""
         # First seprate residues = having same mol index
         names_id_df: pd.DataFrame  # df of names and mol_id
@@ -226,7 +226,7 @@ class Pdb:
         mol_list: list[pd.DataFrame] = []  # df with one mol id
         for mol in watch_id:
             df: pd.DataFrame = names_id_df[names_id_df['mol_id'] == mol]
-            id_name: list[str] = self.rename_atoms(df['names'])
+            id_name: list[str] = self.__rename_atoms(df['names'])
             df['id_name'] = id_name
             mol_list.append(df)
         rename_df: pd.DataFrame  # df with updated names to orderd with atom id
@@ -235,9 +235,9 @@ class Pdb:
         rename_df.sort_values(by=['atom_id'], inplace=True)
         return rename_df['id_name']
 
-    def rename_atoms(self,
-                     names: list[str],  # Name of the atoms from LAMMPS data
-                     ) -> list[str]:
+    def __rename_atoms(self,
+                       names: list[str],  # Name of the atoms from LAMMPS data
+                       ) -> list[str]:
         """rename the atoms based on thier repetetion"""
         # Get the repeated item by counter and rename them
         name_id_dict: dict[str, list[int]]  # Number of repeatation for each
@@ -249,5 +249,5 @@ class Pdb:
             if len(name) > 4:
                 print(f'{bcolors.WARNING}\tWarning:\n'
                       f'\t\tLenght of item {i}: {name} '
-                      f'is longer than 4, consider renaming atoms\n')
+                      f'is longer than 4, consider renaming the atoms\n')
         return name_id
