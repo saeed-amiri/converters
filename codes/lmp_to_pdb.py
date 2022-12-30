@@ -135,7 +135,7 @@ class Pdb:
 
     def __show_warnings(self) -> None:
         """show warnings and infos"""
-        print(f'{bcolors.WARNING}Pdb:\n'
+        print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
               f'\t Masses section in the input file should be in the '
               f'following order:\n'
               f'\t\tid mass # Atom_names Residue Element_symbol(CAP) '
@@ -201,7 +201,7 @@ class Pdb:
         pdb_df['y'] = Atoms_df['y']
         pdb_df['z'] = Atoms_df['z']
         pdb_df['l_indicator'] = ['A' for _ in names]
-        pdb_df['occupancy'] = ['1.0' for _ in names]
+        pdb_df['occupancy'] = [1.0 for _ in names]
         empty_data: list[str] = [' ' for _ in names]
         pdb_df['temperature'] = empty_data
         pdb_df['Segment_id'] = empty_data
