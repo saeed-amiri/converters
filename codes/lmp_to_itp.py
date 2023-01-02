@@ -46,7 +46,7 @@ class Itp:
                ) -> None:
         """call functions"""
         self.atoms = self.__mk_atoms(lmp, pdb_df)
-        self.__mk_bonds(lmp)
+        self.bonds = self.__mk_bonds(lmp)
         self.__mk_angles(lmp)
         self.__mk_dihedrals(lmp)
         self.__mk_pairs(lmp)
@@ -94,7 +94,13 @@ class Itp:
         df['ai'] = lmp.Bonds_df['ai']
         df['aj'] = lmp.Bonds_df['aj']
         df['funct'] = [1 for _ in df['ai']]
-        df[' '] = '; ' + lmp.Bonds_df['name']
+        try:
+            df[' '] = '; ' + lmp.Bonds_df['name']
+        except KeyError:
+            df.drop(columns=[' '])
+            print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
+                  f'\t There is no bonds` names in LAMMPS data\n'
+                  f'{bcolors.ENDC}')
         return df
 
     def __mk_angles(self,
@@ -102,6 +108,25 @@ class Itp:
                   ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
+        columns = ['ai',  # 1st atom in angle
+                   'aj',  # 2nd atom in angle
+                   'ak',  # 3rd atom in angle
+                   'funct',  # not sure what is this, just set to 1, or empty!
+                   ' '  # Comment: name of the angle
+                   ]
+        df = pd.DataFrame(columns=columns)
+        df['ai'] = lmp.Angles_df['ai']
+        df['aj'] = lmp.Angles_df['aj']
+        df['ak'] = lmp.Angles_df['ak']
+        df['funct'] = [1 for _ in df['ai']]
+        try:
+            df[' '] = '; ' + lmp.Angles_df['name']
+        except KeyError:
+            df.drop(columns=[' '], inplace=True)
+            print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
+                  f'\t There is no angles` names in LAMMPS data\n'
+                  f'{bcolors.ENDC}')
+        return df
 
     def __mk_dihedrals(self,
                      lmp: relmp.ReadData  # LAMMPS data file
