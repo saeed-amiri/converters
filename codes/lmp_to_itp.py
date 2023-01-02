@@ -41,20 +41,20 @@ class Itp:
         self.__mk_itp(lmp, pdb_df)
 
     def __mk_itp(self,
-               lmp: relmp.ReadData,  # LAMMPS data file
-               pdb_df: pd.DataFrame  # Final df for pdb file
-               ) -> None:
+                 lmp: relmp.ReadData,  # LAMMPS data file
+                 pdb_df: pd.DataFrame  # Final df for pdb file
+                 ) -> None:
         """call functions"""
         self.atoms = self.__mk_atoms(lmp, pdb_df)
         self.bonds = self.__mk_bonds(lmp)
-        self.__mk_angles(lmp)
-        self.__mk_dihedrals(lmp)
+        self.angles = self.__mk_angles(lmp)
+        self.dihedrals = self.__mk_dihedrals(lmp)
         self.__mk_pairs(lmp)
 
     def __mk_atoms(self,
-                 lmp: relmp.ReadData,  # LAMMPS data file
-                 pdb_df: pd.DataFrame  # Final df for pdb file
-                 ) -> pd.DataFrame:
+                   lmp: relmp.ReadData,  # LAMMPS data file
+                   pdb_df: pd.DataFrame  # Final df for pdb file
+                   ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
         columns = ['atomnr',  # Index of the atoms in lmp file
@@ -81,8 +81,8 @@ class Itp:
         return df
 
     def __mk_bonds(self,
-                 lmp: relmp.ReadData  # LAMMPS data file
-                 ) -> pd.DataFrame:
+                   lmp: relmp.ReadData  # LAMMPS data file
+                   ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
         columns = ['ai',  # 1st atom in bond
@@ -99,13 +99,13 @@ class Itp:
         except KeyError:
             df.drop(columns=[' '])
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                  f'\t There is no bonds` names in LAMMPS data\n'
+                  f'\t There is no bonds` names in LAMMPS read data\n'
                   f'{bcolors.ENDC}')
         return df
 
     def __mk_angles(self,
-                  lmp: relmp.ReadData  # LAMMPS data file
-                  ) -> pd.DataFrame:
+                    lmp: relmp.ReadData  # LAMMPS data file
+                    ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
         columns = ['ai',  # 1st atom in angle
@@ -124,18 +124,39 @@ class Itp:
         except KeyError:
             df.drop(columns=[' '], inplace=True)
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                  f'\t There is no angles` names in LAMMPS data\n'
+                  f'\t There is no angles` names in LAMMPS read data\n'
                   f'{bcolors.ENDC}')
         return df
 
     def __mk_dihedrals(self,
-                     lmp: relmp.ReadData  # LAMMPS data file
-                     ) -> pd.DataFrame:
+                       lmp: relmp.ReadData  # LAMMPS data file
+                       ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
+        columns = ['ai',  # 1st atom in dihedrals
+                   'aj',  # 2nd atom in dihedrals
+                   'ak',  # 3rd atom in dihedrals
+                   'ah',  # 4th atom in dihedrals
+                   'funct',  # not sure what is this, just set to 1, or empty!
+                   ' '  # Comment: name of the dihedrals
+                   ]
+        df = pd.DataFrame(columns=columns)
+        df['ai'] = lmp.Dihedrals_df['ai']
+        df['aj'] = lmp.Dihedrals_df['aj']
+        df['ak'] = lmp.Dihedrals_df['ak']
+        df['ah'] = lmp.Dihedrals_df['ah']
+        df['funct'] = [1 for _ in df['ai']]
+        try:
+            df[' '] = '; ' + lmp.Dihedrals_df['name']
+        except KeyError:
+            df.drop(columns=[' '], inplace=True)
+            print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
+                  f'\t There is no dihedralss` names in LAMMPS read data\n'
+                  f'{bcolors.ENDC}')
+        return df
 
     def __mk_pairs(self,
-                 lmp: relmp.ReadData  # LAMMPS data file
-                 ) -> pd.DataFrame:
+                   lmp: relmp.ReadData  # LAMMPS data file
+                   ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
