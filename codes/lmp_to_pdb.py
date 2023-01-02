@@ -160,7 +160,7 @@ class Pdb:
                    'l_indicator',  # character
                    'residue_name',  # right character
                    'chain_id',  # character
-                   'residue_id'  # right integer
+                   'residue_id',  # right integer
                    'Code_residues',  # character
                    'x',  # orthogonal Å coordinate right real (8.3)
                    'y',  # orthogonal Å coordinate right real (8.3)
@@ -197,20 +197,21 @@ class Pdb:
                                       Atoms_df['mol'],
                                       Atoms_df['atom_id'])
         pdb_df['atom_name'] = names
+        empty_data: list[str] = [' ' for _ in names]  # For empty 
         pdb_df['element'] = elements
         pdb_df['residue_name'] = residues
         pdb_df['records'] = records
-        pdb_df['chain_id'] = Atoms_df['mol']
+        pdb_df['chain_id'] = empty_data
         pdb_df['atom_id'] = Atoms_df['atom_id']
         pdb_df['x'] = Atoms_df['x']
         pdb_df['y'] = Atoms_df['y']
         pdb_df['z'] = Atoms_df['z']
         pdb_df['l_indicator'] = ['A' for _ in names]
         pdb_df['occupancy'] = [1.0 for _ in names]
-        empty_data: list[str] = [' ' for _ in names]
         pdb_df['temperature'] = empty_data
         pdb_df['Segment_id'] = empty_data
-        pdb_df['residue_idCode_residues'] = empty_data
+        pdb_df['residue_id'] = Atoms_df['mol']
+        pdb_df['Code_residues'] = empty_data
         pdb_df['charge'] = empty_data
         pdb_df['ff_type'] = ff_type
         return pdb_df
