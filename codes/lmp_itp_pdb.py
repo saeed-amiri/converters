@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 import read_lmp_data as relmp
 import lmp_to_pdb as lmpdb
+import lmp_to_itp as lmpitp
 from colors_text import TextColor as bcolors
 
 
@@ -87,3 +88,4 @@ if __name__ == '__main__':
     lmp: relmp.ReadData = relmp.ReadData(fname)  # All data in input file
     pdb = lmpdb.Pdb(lmp.Masses_df, lmp.Atoms_df)
     pdb_w = WritePdb(pdb.pdb_df, fname)
+    itp = lmpitp.Itp(lmp, pdb.pdb_df)
