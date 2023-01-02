@@ -132,6 +132,7 @@ class WriteItp:
         f.write(f'[ atoms ]\n')
         f.write(f'; {" ".join(header)}\n')
         atoms.to_csv(f, header=None, sep=' ', index=False)
+        f.write(f'; Total charge : {atoms["charge"].sum()}\n')
         f.write(f'\n')
 
     def write_bonds(self,
@@ -139,18 +140,33 @@ class WriteItp:
                     bonds: pd.DataFrame  # bonds information
                     ) -> None:
         """write section of the itp file"""
+        header: list[str] = [item for item in bonds.columns]
+        f.write(f'[ bonds ]\n')
+        f.write(f'; {" ".join(header)}\n')
+        bonds.to_csv(f, header=None, sep=' ', index=False)
+        f.write(f'\n')
 
     def write_angles(self,
                      f: typing.Any,  # The out put file
-                     bonds: pd.DataFrame  # Bonds inoformation
+                     angles: pd.DataFrame  # Angles inoformation
                      ) -> None:
         """write section of the itp file"""
+        header: list[str] = [item for item in angles.columns]
+        f.write(f'[ angles ]\n')
+        f.write(f'; {" ".join(header)}\n')
+        angles.to_csv(f, header=None, sep=' ', index=False)
+        f.write(f'\n')
 
     def write_dihedrals(self,
                         f: typing.Any,  # The out put file
-                        angles: pd.DataFrame  # Angles inoformation
+                        dihedrals: pd.DataFrame  # Dihedrals inoformation
                         ) -> None:
         """write section of the itp file"""
+        header: list[str] = [item for item in dihedrals.columns]
+        f.write(f'[ dihedrals ]\n')
+        f.write(f'; {" ".join(header)}\n')
+        dihedrals.to_csv(f, header=None, sep=' ', index=False)
+        f.write(f'\n')
 
     def write_pairs(self,
                     f: typing.Any  # The out put file
