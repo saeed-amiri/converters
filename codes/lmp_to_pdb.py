@@ -171,7 +171,8 @@ class Pdb:
                    'element',  # right character
                    'charge',  # character
                    'ff_type',  # Type of the atom in Force field: opls_XX
-                   'mass'  # Masses of the atoms
+                   'mass',  # Masses of the atoms
+                   'q'  # Value of the charge!
                    ]
         pdb_df = pd.DataFrame(columns=columns)
         return pdb_df
@@ -218,6 +219,7 @@ class Pdb:
         pdb_df['charge'] = empty_data
         pdb_df['ff_type'] = ff_type
         pdb_df['mass'] = atoms_masses
+        pdb_df['q'] = Atoms_df['charge']
         return pdb_df
 
     def __fix_atom_names(self,
