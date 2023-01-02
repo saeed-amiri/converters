@@ -69,6 +69,7 @@ class WritePdb:
                 line[78:] = f'{row[1]["charge"]:2s}'
                 f.write(''.join(line))
                 f.write(f'\n')
+            f.write(f'END\n')
 
     def rename_file(self,
                     fname: str  # Input file name
