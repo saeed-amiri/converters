@@ -543,7 +543,6 @@ class Body(Header):
             Masses_df['elements'] = elements
             Masses_df['records'] = records
             Masses_df['ff_type'] = ff_type
-            
         return Masses_df
 
 
