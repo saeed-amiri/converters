@@ -66,7 +66,7 @@ class Itp:
                    'charge',  # Charge as in the lmp file
                    'mass',  # Mass odf the atom as in the lmp file
                    ' ',  # Comment column for ;
-                   '  '  # Second column for the coments 
+                   '  '  # Second column for the coments
                    ]
         df = pd.DataFrame(columns=columns)
         df['atomnr'] = pdb_df['atom_id']
@@ -90,14 +90,21 @@ class Itp:
         columns = ['ai',  # 1st atom in bond
                    'aj',  # 2nd atom in bond
                    'funct',  # not sure what is this, just set to 1, or empty!
-                   ' '  # Comment: name of the bond
+                   'r',  # Distance parameter in harmonic bond interactions
+                   'k',  # Harmonic constant in the harmonic interactions
+                   ' '  # Comment: ;
+                   '  '  # Comment: name of the bond
                    ]
         df = pd.DataFrame(columns=columns)
-        df['ai'] = lmp.Bonds_df['ai']
-        df['aj'] = lmp.Bonds_df['aj']
+        Bonds_df: pd.DataFrame = lmp.Bonds_df.sort_values(by='ai')
+        df['ai'] = Bonds_df['ai']
+        df['aj'] = Bonds_df['aj']
         df['funct'] = [1 for _ in df['ai']]
+        df['r'] = ['r' for _ in df['ai']]
+        df['k'] = ['K' for _ in df['ai']]
         try:
-            df[' '] = '; ' + lmp.Bonds_df['name']
+            df[' '] = [';' for _ in df['ai']]
+            df['  '] = lmp.Bonds_df['name']
         except KeyError:
             df.drop(columns=[' '])
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
@@ -114,13 +121,18 @@ class Itp:
                    'aj',  # 2nd atom in angle
                    'ak',  # 3rd atom in angle
                    'funct',  # not sure what is this, just set to 1, or empty!
+                   'theta',  # The angle between bonds
+                   'cth',  # Strength of the bonds
                    ' '  # Comment: name of the angle
                    ]
         df = pd.DataFrame(columns=columns)
-        df['ai'] = lmp.Angles_df['ai']
-        df['aj'] = lmp.Angles_df['aj']
-        df['ak'] = lmp.Angles_df['ak']
+        Angles_df: pd.DataFrame = lmp.Angles_df.sort_values(by='ai')
+        df['ai'] = Angles_df['ai']
+        df['aj'] = Angles_df['aj']
+        df['ak'] = Angles_df['ak']
         df['funct'] = [1 for _ in df['ai']]
+        df['theta'] = ['theta' for _ in df['ai']]
+        df['cth'] = ['cth' for _ in df['ai']]
         try:
             df[' '] = '; ' + lmp.Angles_df['name']
         except KeyError:
@@ -140,14 +152,25 @@ class Itp:
                    'ak',  # 3rd atom in dihedrals
                    'ah',  # 4th atom in dihedrals
                    'funct',  # not sure what is this, just set to 1, or empty!
+                   'C0',  # Dihedrals parameters
+                   'C1',  # Dihedrals parameters
+                   'C2',  # Dihedrals parameters
+                   'C3',  # Dihedrals parameters
+                   'C4',  # Dihedrals parameters
                    ' '  # Comment: name of the dihedrals
                    ]
         df = pd.DataFrame(columns=columns)
-        df['ai'] = lmp.Dihedrals_df['ai']
-        df['aj'] = lmp.Dihedrals_df['aj']
-        df['ak'] = lmp.Dihedrals_df['ak']
-        df['ah'] = lmp.Dihedrals_df['ah']
+        Dihedrals_df: pd.DataFrame = lmp.Dihedrals_df.sort_values(by='ai')
+        df['ai'] = Dihedrals_df['ai']
+        df['aj'] = Dihedrals_df['aj']
+        df['ak'] = Dihedrals_df['ak']
+        df['ah'] = Dihedrals_df['ah']
         df['funct'] = [1 for _ in df['ai']]
+        df['C0'] = ['C0' for _ in df['ai']]
+        df['C1'] = ['C1' for _ in df['ai']]
+        df['C2'] = ['C2' for _ in df['ai']]
+        df['C3'] = ['C3' for _ in df['ai']]
+        df['C4'] = ['C4' for _ in df['ai']]
         try:
             df[' '] = '; ' + lmp.Dihedrals_df['name']
         except KeyError:
