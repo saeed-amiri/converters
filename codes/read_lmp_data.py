@@ -220,7 +220,7 @@ class Header:
                           f'\t Unclear style in the Masses section:'
                           f'\t{all_name}\n'
                           f'{bcolors.ENDC}')
-                elif atoms_info_len == 4:  # Get data for GROMACS
+                elif atoms_info_len == 5:  # Get data for GROMACS
                     atom_name = all_name
                     self.GROMACS_flag = True
                 else:
@@ -531,15 +531,18 @@ class Body(Header):
             residues: list[str] = []  # Residues names
             elements: list[str] = []  # Elements' symbols
             records: list[str] = []  # ATOMS or HATOM or TER
+            ff_type: list[str] = []  # Force field type of the atom
             for key in self.Names.keys():
                 names.append(self.Names[key][0])
                 residues.append(self.Names[key][1])
                 elements.append(self.Names[key][2])
                 records.append(self.Names[key][3])
+                ff_type.append(self.Names[key][4])
             Masses_df['names'] = names
             Masses_df['residues'] = residues
             Masses_df['elements'] = elements
             Masses_df['records'] = records
+            Masses_df['ff_type'] = ff_type
             
         return Masses_df
 
