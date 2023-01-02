@@ -38,20 +38,20 @@ class Itp:
                  lmp: relmp.ReadData,  # LAMMPS data file
                  pdb_df: pd.DataFrame  # Final df for pdb file
                  ) -> None:
-        self.mk_itp(lmp, pdb_df)
+        self.__mk_itp(lmp, pdb_df)
 
-    def mk_itp(self,
+    def __mk_itp(self,
                lmp: relmp.ReadData,  # LAMMPS data file
                pdb_df: pd.DataFrame  # Final df for pdb file
                ) -> None:
         """call functions"""
-        self.mk_atoms(lmp, pdb_df)
-        self.mk_bonds(lmp)
-        self.mk_angles(lmp)
-        self.mk_dihedrals(lmp)
-        self.mk_pairs(lmp)
+        self.atoms = self.__mk_atoms(lmp, pdb_df)
+        self.__mk_bonds(lmp)
+        self.__mk_angles(lmp)
+        self.__mk_dihedrals(lmp)
+        self.__mk_pairs(lmp)
 
-    def mk_atoms(self,
+    def __mk_atoms(self,
                  lmp: relmp.ReadData,  # LAMMPS data file
                  pdb_df: pd.DataFrame  # Final df for pdb file
                  ) -> pd.DataFrame:
@@ -64,7 +64,8 @@ class Itp:
                    'atomname',  # Name of the atom as in PDB file
                    'chargegrp',  # Charge group as in PDB file
                    'charge',  # Charge as in the lmp file
-                   'mass'  # Mass odf the atom as in the lmp file
+                   'mass',  # Mass odf the atom as in the lmp file
+                   ' ',  # Comment column
                    ]
         df = pd.DataFrame(columns=columns)
         df['atomnr'] = pdb_df['atom_id']
@@ -76,27 +77,39 @@ class Itp:
         df['charge'] = pdb_df['q']
         df['mass'] = pdb_df['mass']
         df['chargegrp'] = [1 for _ in df['atomnr']]
+        df[' '] = '; ' + pdb_df["element"]  # f-string dosent work here!
         return df
 
-    def mk_bonds(self,
+    def __mk_bonds(self,
                  lmp: relmp.ReadData  # LAMMPS data file
                  ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
+        columns = ['ai',  # 1st atom in bond
+                   'aj',  # 2nd atom in bond
+                   'funct',  # not sure what is this, just set to 1, or empty!
+                   ' '  # Comment: name of the bond
+                   ]
+        df = pd.DataFrame(columns=columns)
+        df['ai'] = lmp.Bonds_df['ai']
+        df['aj'] = lmp.Bonds_df['aj']
+        df['funct'] = [1 for _ in df['ai']]
+        df[' '] = '; ' + lmp.Bonds_df['name']
+        return df
 
-    def mk_angles(self,
+    def __mk_angles(self,
                   lmp: relmp.ReadData  # LAMMPS data file
                   ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
 
-    def mk_dihedrals(self,
+    def __mk_dihedrals(self,
                      lmp: relmp.ReadData  # LAMMPS data file
                      ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
         columns: list[str]  # Columns of the DataFrame
 
-    def mk_pairs(self,
+    def __mk_pairs(self,
                  lmp: relmp.ReadData  # LAMMPS data file
                  ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
