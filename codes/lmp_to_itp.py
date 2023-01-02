@@ -67,6 +67,16 @@ class Itp:
                    'mass'  # Mass odf the atom as in the lmp file
                    ]
         df = pd.DataFrame(columns=columns)
+        df['atomnr'] = pdb_df['atom_id']
+        df['atomtype'] = pdb_df['ff_type']
+        df['resnr'] = pdb_df['residue_id']
+        df['resname'] = pdb_df['residue_name']
+        df['atomname'] = pdb_df['atom_name']
+        df['chargegrp'] = pdb_df['charge']
+        df['charge'] = pdb_df['q']
+        df['mass'] = pdb_df['mass']
+        df['chargegrp'] = [1 for _ in df['atomnr']]
+        return df
 
     def mk_bonds(self,
                  lmp: relmp.ReadData  # LAMMPS data file
