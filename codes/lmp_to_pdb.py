@@ -170,7 +170,8 @@ class Pdb:
                    'Segment_id',  # left character
                    'element',  # right character
                    'charge',  # character
-                   'ff_type'  # Type of the atom in Force field: opls_XX
+                   'ff_type',  # Type of the atom in Force field: opls_XX
+                   'mass'  # Masses of the atoms
                    ]
         pdb_df = pd.DataFrame(columns=columns)
         return pdb_df
@@ -185,6 +186,7 @@ class Pdb:
         residues: list[str] = []  # Names of each residues
         records: list[str] = []  # Records of each atom, e.g., ATOM, HATOM etc
         ff_type: list[str] = []  # Type of the atom in the FF, e.g., opls_XXX
+        atoms_masses: list[float] = []  # Masses of the atoms
         """set columns of the df"""
         for item in Atoms_df['typ']:
             df_row = Masses[Masses['typ'] == item]
@@ -193,6 +195,7 @@ class Pdb:
             residues.append(df_row['residues'][item])
             records.append(df_row['records'][item])
             ff_type.append(df_row['ff_type'][item])
+            atoms_masses.append(df_row['mass'][item])
         names = self.__fix_atom_names(names,
                                       Atoms_df['mol'],
                                       Atoms_df['atom_id'])
@@ -214,6 +217,7 @@ class Pdb:
         pdb_df['Code_residues'] = empty_data
         pdb_df['charge'] = empty_data
         pdb_df['ff_type'] = ff_type
+        pdb_df['mass'] = atoms_masses
         return pdb_df
 
     def __fix_atom_names(self,
