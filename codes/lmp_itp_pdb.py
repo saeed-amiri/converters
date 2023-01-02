@@ -56,7 +56,7 @@ class WritePdb:
                 line[16:17] = f' '
                 line[17:20] = f'{row[1]["residue_name"]:<3s}'
                 line[20:22] = f'{" "*2}'
-                line[22:26] = f'{row[1]["chain_id"]:>4d}'
+                line[22:26] = f'{row[1]["residue_id"]:>4d}'
                 line[26:27] = f' '
                 line[27:30] = f'{" "*3}'
                 line[30:38] = f'{row[1]["x"]:>8.3f}'
