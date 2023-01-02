@@ -1,5 +1,6 @@
 import sys
 import pandas as pd
+import typing
 import read_lmp_data as relmp
 import lmp_to_pdb as lmpdb
 import lmp_to_itp as lmpitp
@@ -43,7 +44,9 @@ class WritePdb:
                   ) -> None:
         """write the dataframe into a file"""
         fout: str  # Name of the output file
-        fout = self.rename_file(fname)
+        fout = rename_file(fname, extension='pdb')
+        print(f'{bcolors.OKBLUE}{self.__class__.__name__}:\n'
+              f'\tPDB file is `{fout}`{bcolors.ENDC}\n')
         with open(fout, 'w') as f:
             f.write(f'HEADER\n')
             for row in pdb_df.iterrows():
@@ -72,15 +75,87 @@ class WritePdb:
                 f.write(f'\n')
             f.write(f'END\n')
 
-    def rename_file(self,
-                    fname: str  # Input file name
-                    ) -> str:  # Out put file name
-        """rename file name, same name with pdb extension"""
-        fout: str  # Output file name
-        fout = f'{fname.strip().split(".")[0]}.pdb'
+
+def rename_file(fname: str,  # Input file name
+                extension: str  # The extension of the output file
+                ) -> str:  # Out put file name
+    """rename file name, same name with pdb extension"""
+    fout: str  # Output file name
+    fout = f'{fname.strip().split(".")[0]}.{extension}'
+    return fout
+
+
+class WriteItp:
+    """write itp file
+    There is no uniqe structure one should follow
+    The columns will be seperated by single space"""
+    def __init__(self,
+                 itp: lmpitp.Itp,  # Data frames restructerd from LAMMPS
+                 fname: str  # Name of the input files
+                 ) -> None:
+        """call functions"""
+        self.write_itp(itp, fname)
+
+    def write_itp(self,
+                  itp: lmpitp.Itp,  # Data frames restructerd from LAMMPS
+                  fname: str  # Name of the input data file
+                  ) -> None:
+        fout: str  # Name of the input file
+        fout = rename_file(fname, extension='itp')
         print(f'{bcolors.OKBLUE}{self.__class__.__name__}:\n'
-              f'\tPDB file is `{fout}`{bcolors.ENDC}\n')
-        return fout
+              f'\tITP file is `{fout}`{bcolors.ENDC}\n')
+        with open(fout, 'w') as f:
+            f.write(f'; input pdb SMILES:\n')
+            f.write(f'\n')
+            self.write_molecule(f)
+            self.write_atoms(f, itp.atoms)
+            self.write_bonds(f, itp.bonds)
+            self.write_angles(f, itp.angles)
+            self.write_dihedrals(f, itp.dihedrals)
+            self.write_pairs(f)
+
+    def write_molecule(self,
+                       f: typing.Any  # The out put file
+                       ) -> None:
+        """write section of the itp file"""
+        f.write(f'[ moleculetype ]\n')
+        f.write(f'; Name\t\tnrexcl\n')
+        f.write(f'ITP\t\t3\n')
+        f.write(f'\n')
+
+    def write_atoms(self,
+                    f: typing.Any,  # The out put file
+                    atoms: pd.DataFrame  # Atoms information
+                    ) -> None:
+        """write section of the itp file"""
+        header: list[str] = [item for item in atoms.columns]
+        f.write(f'[ atoms ]\n')
+        f.write(f'; {" ".join(header)}\n')
+        atoms.to_csv(f, header=None, sep=' ', index=False)
+        f.write(f'\n')
+
+    def write_bonds(self,
+                    f: typing.Any,  # The out put file
+                    bonds: pd.DataFrame  # bonds information
+                    ) -> None:
+        """write section of the itp file"""
+
+    def write_angles(self,
+                     f: typing.Any,  # The out put file
+                     bonds: pd.DataFrame  # Bonds inoformation
+                     ) -> None:
+        """write section of the itp file"""
+
+    def write_dihedrals(self,
+                        f: typing.Any,  # The out put file
+                        angles: pd.DataFrame  # Angles inoformation
+                        ) -> None:
+        """write section of the itp file"""
+
+    def write_pairs(self,
+                    f: typing.Any  # The out put file
+                    ) -> None:
+        """write section of the itp file"""
 
 
 if __name__ == '__main__':
@@ -89,3 +164,4 @@ if __name__ == '__main__':
     pdb = lmpdb.Pdb(lmp.Masses_df, lmp.Atoms_df)
     pdb_w = WritePdb(pdb.pdb_df, fname)
     itp = lmpitp.Itp(lmp, pdb.pdb_df)
+    itp_w = WriteItp(itp, fname)
