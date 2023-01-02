@@ -65,7 +65,8 @@ class Itp:
                    'chargegrp',  # Charge group as in PDB file
                    'charge',  # Charge as in the lmp file
                    'mass',  # Mass odf the atom as in the lmp file
-                   ' ',  # Comment column
+                   ' ',  # Comment column for ;
+                   '  '  # Second column for the coments 
                    ]
         df = pd.DataFrame(columns=columns)
         df['atomnr'] = pdb_df['atom_id']
@@ -77,7 +78,8 @@ class Itp:
         df['charge'] = pdb_df['q']
         df['mass'] = pdb_df['mass']
         df['chargegrp'] = [1 for _ in df['atomnr']]
-        df[' '] = '; ' + pdb_df["element"]  # f-string dosent work here!
+        df[' '] = [';' for _ in df['atomnr']]
+        df['  '] = pdb_df["element"]
         return df
 
     def __mk_bonds(self,
