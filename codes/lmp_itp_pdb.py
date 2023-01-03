@@ -1,9 +1,10 @@
 import sys
-import pandas as pd
 import typing
-import read_lmp_data as relmp
+import numpy as np
+import pandas as pd
 import lmp_to_pdb as lmpdb
 import lmp_to_itp as lmpitp
+import read_lmp_data as relmp
 from colors_text import TextColor as bcolors
 
 
@@ -137,8 +138,12 @@ class WriteItp:
         header: list[str] = [item for item in atoms.columns]
         f.write(f'[ atoms ]\n')
         f.write(f'; {"  ".join(header)}\n')
-        df: pd.DataFrame  # Copy of the df with mol selected info
-        df = atoms[atoms['resname'] == mol]
+        df_raw: pd.DataFrame  # Copy of the df with mol selected info
+        df_raw = atoms[atoms['resname'] == mol]
+        resides_ids = set(df_raw['resnr'])
+        df: pd.DataFrame  # Copy of the df with mol_id selected info
+        df = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
+        resides_ids: set[int]  # all of the residues ids
         for row in df.iterrows():
             line: list[str]  # line with length of 85 spaces to fix output
             line = [' '*85]
