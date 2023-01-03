@@ -115,7 +115,7 @@ class WriteItp:
                 self.write_molecule(f, mol)
                 self.write_atoms(f, itp.atoms, mol)
                 self.write_bonds(f, itp.bonds, mol)
-                self.write_angles(f, itp.angles)
+                self.write_angles(f, itp.angles, mol)
                 self.write_dihedrals(f, itp.dihedrals)
                 self.write_pairs(f)
 
@@ -145,6 +145,11 @@ class WriteItp:
         resides_ids = set(df_raw['resnr'])
         df: pd.DataFrame  # Copy of the df with mol_id selected info
         df = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
+        self.__atoms_one: dict[int, int]  # Atoms index from one
+        self.__atoms_one = {nr: nr-np.min(df['atomnr']) + 1 for nr in df['atomnr']}
+        atomnr: list[int] = [self.__atoms_one[item] for item in df['atomnr']]
+        df.drop(columns='atomnr', inplace=True)
+        df['atomnr'] = atomnr
         resides_ids: set[int]  # all of the residues ids
         for row in df.iterrows():
             line: list[str]  # line with length of 85 spaces to fix output
@@ -186,6 +191,8 @@ class WriteItp:
         if resides_ids:
             df: pd.DataFrame  # Copy of the df with mol_id selected info
             df = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
+            df['ai'] = [self.__atoms_one[item] for item in df['ai']]
+            df['aj'] = [self.__atoms_one[item] for item in df['aj']]
             header: list[str] = [item for item in bonds.columns]
             f.write(f'[ bonds ]\n')
             f.write(f'; {" ".join(header)}\n')
@@ -194,14 +201,25 @@ class WriteItp:
 
     def write_angles(self,
                      f: typing.Any,  # The out put file
-                     angles: pd.DataFrame  # Angles inoformation
+                     angles: pd.DataFrame,  # Angles inoformation
+                     mol: str  # Name of the molecule to write into file
                      ) -> None:
         """write section of the itp file"""
-        header: list[str] = [item for item in angles.columns]
-        f.write(f'[ angles ]\n')
-        f.write(f'; {" ".join(header)}\n')
-        angles.to_csv(f, header=None, sep='\t', index=False)
-        f.write(f'\n')
+        df_raw: pd.DataFrame  # Copy of the df with mol selected info
+        df_raw = angles[angles['resname'] == mol]
+
+        resides_ids = set(df_raw['resnr'])
+        if resides_ids:
+            df: pd.DataFrame  # Copy of the df with mol_id selected info
+            df = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
+            df['ai'] = [self.__atoms_one[item] for item in df['ai']]
+            df['aj'] = [self.__atoms_one[item] for item in df['aj']]
+            df['ak'] = [self.__atoms_one[item] for item in df['ak']]
+            header: list[str] = [item for item in angles.columns]
+            f.write(f'[ angles ]\n')
+            f.write(f'; {" ".join(header)}\n')
+            df.to_csv(f, header=None, sep='\t', index=False)
+            f.write(f'\n')
 
     def write_dihedrals(self,
                         f: typing.Any,  # The out put file
