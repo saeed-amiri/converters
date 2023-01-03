@@ -134,14 +134,16 @@ class Pdb:
         Masses = self.__get_atoms_info(Masses_df)
         pdb_df: pd.DataFrame = self.__mk_pdb_df()  # Empty df
         self.pdb_df = self.__set_pdb(pdb_df, Masses, Atoms_df)
+        print(f'{bcolors.WARNING}\tTotal charge is : '
+              f'{self.pdb_df["q"].sum()}\n{bcolors.ENDC}')
 
     def __show_warnings(self) -> None:
         """show warnings and infos"""
         print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-              f'\t Masses section in the input file should be in the '
+              f'\tMasses section in the input file should be in the '
               f'following order:\n'
               f'\t\tid mass # Atom_names Residue Element_symbol(CAP) '
-              f'RECORD\n {bcolors.ENDC}')
+              f'RECORD ff_type\n {bcolors.ENDC}')
 
     def __get_atoms_info(self,
                          Masses_df: pd.DataFrame,  # df contains atoms' info
