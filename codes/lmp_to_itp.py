@@ -66,20 +66,19 @@ class Itp:
                    'charge',  # Charge as in the lmp file
                    'mass',  # Mass odf the atom as in the lmp file
                    ' ',  # Comment column for ;
-                   '  '  # Second column for the coments
+                   'element'  # Second column for the coments
                    ]
         df = pd.DataFrame(columns=columns)
-        df['atomnr'] = pdb_df['atom_id']
-        df['atomtype'] = pdb_df['ff_type']
-        df['resnr'] = pdb_df['residue_id']
-        df['resname'] = pdb_df['residue_name']
-        df['atomname'] = pdb_df['atom_name']
-        df['chargegrp'] = pdb_df['charge']
-        df['charge'] = pdb_df['q']
-        df['mass'] = pdb_df['mass']
-        df['chargegrp'] = [1 for _ in df['atomnr']]
+        df['atomnr'] = [int(item) for item in pdb_df['atom_id']]
+        df['atomtype'] = [str(item) for item in pdb_df['ff_type']]
+        df['resnr'] = [int(item) for item in pdb_df['residue_id']]
+        df['resname'] = [str(item) for item in pdb_df['residue_name']]
+        df['atomname'] = [str(item) for item in pdb_df['atom_name']]
+        df['chargegrp'] = [int(1) for _ in pdb_df['charge']]
+        df['charge'] = [float(item) for item in pdb_df['q']]
+        df['mass'] = [float(item) for item in pdb_df['mass']]
         df[' '] = [';' for _ in df['atomnr']]
-        df['  '] = pdb_df["element"]
+        df['element'] = [str(item) for item in pdb_df["element"]]
         return df
 
     def __mk_bonds(self,
