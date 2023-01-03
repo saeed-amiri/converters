@@ -170,7 +170,6 @@ class Itp:
         try:
             df['angle_name'] = lmp.Angles_df['name']
         except KeyError:
-            df.drop(columns=[' '], inplace=True)
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                   f'\t There is no angles` names in LAMMPS read data\n'
                   f'{bcolors.ENDC}')
@@ -228,7 +227,10 @@ class Itp:
                    'C2',  # Dihedrals parameters
                    'C3',  # Dihedrals parameters
                    'C4',  # Dihedrals parameters
-                   ' '  # Comment: name of the dihedrals
+                   ' ',  # Comment: name of the dihedrals
+                   'dihedral_name',  # names
+                   'resname',  # Name of the residue which atoms belonged to
+                   'resnr',  # Nr. of the residue which atoms belonged to
                    ]
         df = pd.DataFrame(columns=columns)
         Dihedrals_df: pd.DataFrame = lmp.Dihedrals_df.sort_values(by='ai')
@@ -242,14 +244,58 @@ class Itp:
         # df['C2'] = [' ' for _ in df['ai']]
         # df['C3'] = [' ' for _ in df['ai']]
         # df['C4'] = [' ' for _ in df['ai']]
+        df[' '] = [';' for _ in df['ai']]
         try:
-            df[' '] = '; ' + lmp.Dihedrals_df['name']
+            df['dihedral_name'] = lmp.Dihedrals_df['name']
         except KeyError:
-            df.drop(columns=[' '], inplace=True)
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                   f'\t There is no dihedralss` names in LAMMPS read data\n'
                   f'{bcolors.ENDC}')
+        df['resname'], df['resnr'] = self.__get_dihedrals_res(lmp, df)
         return df
+
+    def __get_dihedrals_res(self,
+                            lmp: relmp.ReadData,  # LAMMPS data file
+                            df: pd.DataFrame  # df contain itp info
+                            ) -> tuple[list]:
+        """return residues name and index"""
+        resname: list[str] = []  # Name of the residues
+        resnr: list[int] = []  # index of the residues
+        for ai, aj, ak, ah in zip(df['ai'], df['aj'], df['ak'], df['ah']):
+            ai_type: int = lmp.Atoms_df.loc[
+                           lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
+            aj_type: int = lmp.Atoms_df.loc[
+                           lmp.Atoms_df['atom_id'] == aj]['typ'][aj]
+            ak_type: int = lmp.Atoms_df.loc[
+                           lmp.Atoms_df['atom_id'] == ak]['typ'][ak]
+            ah_type: int = lmp.Atoms_df.loc[
+                           lmp.Atoms_df['atom_id'] == ah]['typ'][ah]
+            mol_i: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == ai_type]['residues'][ai_type]
+            mol_j: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == aj_type]['residues'][aj_type]
+            mol_k: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == ak_type]['residues'][ak_type]
+            mol_h: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == ah_type]['residues'][ah_type]
+            mol_iid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == ai]['mol'][ai]
+            mol_jid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == aj]['mol'][aj]
+            mol_kid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == ak]['mol'][ak]
+            mol_hid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == ah]['mol'][ah]
+            check_list_name = set([mol_i, mol_j, mol_k, mol_h])
+            check_list_id = set([mol_iid, mol_jid, mol_kid, mol_hid])
+            if len(check_list_name) != 1 or len(check_list_id) != 1:
+                exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                     f'\tdihedrals between atoms with diffrents residues '
+                     f'type\n{bcolors.ENDC}')
+            
+            resnr.append(mol_iid)
+            resname.append(mol_i)
+        return resname, resnr
 
     def __mk_pairs(self,
                    lmp: relmp.ReadData  # LAMMPS data file
