@@ -92,7 +92,8 @@ class Itp:
                    'k',  # Harmonic constant in the harmonic interactions
                    ' ',  # Comment: ;
                    '  ',  # Comment: name of the bond
-                   'resname'  # Name of the residue which atoms belonged to
+                   'resname',  # Name of the residue which atoms belonged to
+                   'resnr',  # Nr. of the residue which atoms belonged to
                    ]
         df = pd.DataFrame(columns=columns)
         Bonds_df: pd.DataFrame = lmp.Bonds_df.sort_values(by='ai')
@@ -109,23 +110,37 @@ class Itp:
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                   f'\t There is no bonds` names in LAMMPS read data\n'
                   f'{bcolors.ENDC}')
+        df['resname'], df['resnr'] = self.__get_bonds_res(lmp, df)
+        return df
+
+    def __get_bonds_res(self,
+                        lmp: relmp.ReadData,  # LAMMPS data file
+                        df: pd.DataFrame  # df contain itp info
+                        ) -> tuple[list]:
+        """return residues name and index"""
         resname: list[str] = []  # Name of the residues
+        resnr: list[int] = []  # index of the residues
         for ai, aj in zip(df['ai'], df['aj']):
             ai_type: int = lmp.Atoms_df.loc[
-                      lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
-            mol_i: str = lmp.Masses_df[
-                      lmp.Masses_df['typ'] == ai_type]['residues'][ai_type]
+                           lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
             aj_type: int = lmp.Atoms_df.loc[
-                      lmp.Atoms_df['atom_id'] == aj]['typ'][aj]
+                           lmp.Atoms_df['atom_id'] == aj]['typ'][aj]
+            mol_i: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == ai_type]['residues'][ai_type]
             mol_j: str = lmp.Masses_df[
-                      lmp.Masses_df['typ'] == aj_type]['residues'][aj_type]
-            if mol_i != mol_j:
+                         lmp.Masses_df['typ'] == aj_type]['residues'][aj_type]
+            mol_iid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == ai]['mol'][ai]
+            mol_jid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == aj]['mol'][aj]
+
+            if mol_i != mol_j or mol_iid != mol_jid:
                 exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
                      f'\tBond between atoms with diffrents residues '
                      f'type\n{bcolors.ENDC}')
+            resnr.append(mol_iid)
             resname.append(mol_i)
-        df['resname'] = resname
-        return df
+        return resname, resnr
 
     def __mk_angles(self,
                     lmp: relmp.ReadData  # LAMMPS data file
@@ -138,7 +153,9 @@ class Itp:
                    'funct',  # not sure what is this, just set to 1, or empty!
                    'theta',  # The angle between bonds
                    'cth',  # Strength of the bonds
-                   ' '  # Comment: name of the angle
+                   ' ',  # Comment: name of the angle
+                   'resname',  # Name of the residue which atoms belonged to
+                   'resnr',  # Nr. of the residue which atoms belonged to
                    ]
         df = pd.DataFrame(columns=columns)
         Angles_df: pd.DataFrame = lmp.Angles_df.sort_values(by='ai')
@@ -155,7 +172,44 @@ class Itp:
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                   f'\t There is no angles` names in LAMMPS read data\n'
                   f'{bcolors.ENDC}')
+        df['resname'], df['resnr'] = self.__get_angles_res(lmp, df)
         return df
+
+    def __get_angles_res(self,
+                         lmp: relmp.ReadData,  # LAMMPS data file
+                         df: pd.DataFrame  # df contain itp info
+                         ) -> tuple[list]:
+        """return residues name and index"""
+        resname: list[str] = []  # Name of the residues
+        resnr: list[int] = []  # index of the residues
+        for ai, aj, ak in zip(df['ai'], df['aj'], df['ak']):
+            ai_type: int = lmp.Atoms_df.loc[
+                           lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
+            aj_type: int = lmp.Atoms_df.loc[
+                           lmp.Atoms_df['atom_id'] == aj]['typ'][aj]
+            ak_type: int = lmp.Atoms_df.loc[
+                           lmp.Atoms_df['atom_id'] == ak]['typ'][ak]
+            mol_i: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == ai_type]['residues'][ai_type]
+            mol_j: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == aj_type]['residues'][aj_type]
+            mol_k: str = lmp.Masses_df[
+                         lmp.Masses_df['typ'] == ak_type]['residues'][ak_type]
+            mol_iid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == ai]['mol'][ai]
+            mol_jid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == aj]['mol'][aj]
+            mol_kid: int = lmp.Atoms_df[
+                           lmp.Atoms_df['atom_id'] == ak]['mol'][ak]
+            check_list_name = set([mol_i, mol_j, mol_k])
+            check_list_id = set([mol_iid, mol_jid, mol_kid])
+            if len(check_list_name) != 1 or len(check_list_id) != 1:
+                exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                     f'\tangles between atoms with diffrents residues '
+                     f'type\n{bcolors.ENDC}')
+            resnr.append(mol_iid)
+            resname.append(mol_i)
+        return resname, resnr
 
     def __mk_dihedrals(self,
                        lmp: relmp.ReadData  # LAMMPS data file
