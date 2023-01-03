@@ -90,8 +90,9 @@ class Itp:
                    'funct',  # not sure what is this, just set to 1, or empty!
                    'r',  # Distance parameter in harmonic bond interactions
                    'k',  # Harmonic constant in the harmonic interactions
-                   ' '  # Comment: ;
-                   '  '  # Comment: name of the bond
+                   ' ',  # Comment: ;
+                   '  ',  # Comment: name of the bond
+                   'resname'  # Name of the residue which atoms belonged to
                    ]
         df = pd.DataFrame(columns=columns)
         Bonds_df: pd.DataFrame = lmp.Bonds_df.sort_values(by='ai')
@@ -108,6 +109,22 @@ class Itp:
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                   f'\t There is no bonds` names in LAMMPS read data\n'
                   f'{bcolors.ENDC}')
+        resname: list[str] = []  # Name of the residues
+        for ai, aj in zip(df['ai'], df['aj']):
+            ai_type: int = lmp.Atoms_df.loc[
+                      lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
+            mol_i: str = lmp.Masses_df[
+                      lmp.Masses_df['typ'] == ai_type]['residues'][ai_type]
+            aj_type: int = lmp.Atoms_df.loc[
+                      lmp.Atoms_df['atom_id'] == aj]['typ'][aj]
+            mol_j: str = lmp.Masses_df[
+                      lmp.Masses_df['typ'] == aj_type]['residues'][aj_type]
+            if mol_i != mol_j:
+                exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                     f'\tBond between atoms with diffrents residues '
+                     f'type\n{bcolors.ENDC}')
+            resname.append(mol_i)
+        df['resname'] = resname
         return df
 
     def __mk_angles(self,
@@ -163,7 +180,7 @@ class Itp:
         df['aj'] = Dihedrals_df['aj']
         df['ak'] = Dihedrals_df['ak']
         df['ah'] = Dihedrals_df['ah']
-        df['funct'] = [1 for _ in df['ai']]
+        df['funct'] = [3 for _ in df['ai']]
         # df['C0'] = [' ' for _ in df['ai']]
         # df['C1'] = [' ' for _ in df['ai']]
         # df['C2'] = [' ' for _ in df['ai']]
