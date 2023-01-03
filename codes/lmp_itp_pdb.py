@@ -138,8 +138,10 @@ class WriteItp:
         header: list[str] = [item for item in atoms.columns]
         f.write(f'[ atoms ]\n')
         f.write(f'; {"  ".join(header)}\n')
+
         df_raw: pd.DataFrame  # Copy of the df with mol selected info
         df_raw = atoms[atoms['resname'] == mol]
+
         resides_ids = set(df_raw['resnr'])
         df: pd.DataFrame  # Copy of the df with mol_id selected info
         df = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
@@ -177,13 +179,18 @@ class WriteItp:
                     mol: str  # Name of the molecule to write into file
                     ) -> None:
         """write section of the itp file"""
-        df: pd.DataFrame  # Copy of the df with mol selected info
-        df = bonds[bonds['resname'] == mol]
-        header: list[str] = [item for item in bonds.columns]
-        f.write(f'[ bonds ]\n')
-        f.write(f'; {" ".join(header)}\n')
-        df.to_csv(f, header=None, sep='\t', index=False)
-        f.write(f'\n')
+        df_raw: pd.DataFrame  # Copy of the df with mol selected info
+        df_raw = bonds[bonds['resname'] == mol]
+
+        resides_ids = set(df_raw['resnr'])
+        if resides_ids:
+            df: pd.DataFrame  # Copy of the df with mol_id selected info
+            df = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
+            header: list[str] = [item for item in bonds.columns]
+            f.write(f'[ bonds ]\n')
+            f.write(f'; {" ".join(header)}\n')
+            df.to_csv(f, header=None, sep='\t', index=False)
+            f.write(f'\n')
 
     def write_angles(self,
                      f: typing.Any,  # The out put file
