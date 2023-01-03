@@ -45,14 +45,13 @@ class Itp:
                  pdb_df: pd.DataFrame  # Final df for pdb file
                  ) -> None:
         """call functions"""
-        self.atoms = self.__mk_atoms(lmp, pdb_df)
+        self.atoms = self.__mk_atoms(pdb_df)
         self.bonds = self.__mk_bonds(lmp)
         self.angles = self.__mk_angles(lmp)
         self.dihedrals = self.__mk_dihedrals(lmp)
         self.__mk_pairs(lmp)
 
     def __mk_atoms(self,
-                   lmp: relmp.ReadData,  # LAMMPS data file
                    pdb_df: pd.DataFrame  # Final df for pdb file
                    ) -> pd.DataFrame:
         df: pd.DataFrame  # df in the itp format
@@ -99,8 +98,8 @@ class Itp:
         df['ai'] = Bonds_df['ai']
         df['aj'] = Bonds_df['aj']
         df['funct'] = [1 for _ in df['ai']]
-        df['r'] = ['r' for _ in df['ai']]
-        df['k'] = ['K' for _ in df['ai']]
+        # df['r'] = [' ' for _ in df['ai']]
+        # df['k'] = [' ' for _ in df['ai']]
         try:
             df[' '] = [';' for _ in df['ai']]
             df['  '] = lmp.Bonds_df['name']
@@ -130,8 +129,8 @@ class Itp:
         df['aj'] = Angles_df['aj']
         df['ak'] = Angles_df['ak']
         df['funct'] = [1 for _ in df['ai']]
-        df['theta'] = ['theta' for _ in df['ai']]
-        df['cth'] = ['cth' for _ in df['ai']]
+        # df['theta'] = [' ' for _ in df['ai']]
+        # df['cth'] = [' ' for _ in df['ai']]
         try:
             df[' '] = '; ' + lmp.Angles_df['name']
         except KeyError:
@@ -165,11 +164,11 @@ class Itp:
         df['ak'] = Dihedrals_df['ak']
         df['ah'] = Dihedrals_df['ah']
         df['funct'] = [1 for _ in df['ai']]
-        df['C0'] = ['C0' for _ in df['ai']]
-        df['C1'] = ['C1' for _ in df['ai']]
-        df['C2'] = ['C2' for _ in df['ai']]
-        df['C3'] = ['C3' for _ in df['ai']]
-        df['C4'] = ['C4' for _ in df['ai']]
+        # df['C0'] = [' ' for _ in df['ai']]
+        # df['C1'] = [' ' for _ in df['ai']]
+        # df['C2'] = [' ' for _ in df['ai']]
+        # df['C3'] = [' ' for _ in df['ai']]
+        # df['C4'] = [' ' for _ in df['ai']]
         try:
             df[' '] = '; ' + lmp.Dihedrals_df['name']
         except KeyError:
