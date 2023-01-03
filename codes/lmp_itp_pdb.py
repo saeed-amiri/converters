@@ -152,7 +152,7 @@ class WriteItp:
             line[73:74] = f'{" "*1}'
             line[75:77] = f'{row[1][" "]:>2s}'
             line[77:78] = f'{" "*1}'
-            line[78:] = f'{row[1]["element"]:>}'
+            line[78:] = f'{row[1]["element"]:>6s}'
             f.write(''.join(line))
             f.write(f'\n')
         f.write(f'; Total charge : {atoms["charge"].sum()}\n')
@@ -166,7 +166,7 @@ class WriteItp:
         header: list[str] = [item for item in bonds.columns]
         f.write(f'[ bonds ]\n')
         f.write(f'; {" ".join(header)}\n')
-        bonds.to_csv(f, header=None, sep=' ', index=False)
+        bonds.to_csv(f, header=None, sep='\t', index=False)
         f.write(f'\n')
 
     def write_angles(self,
@@ -177,7 +177,7 @@ class WriteItp:
         header: list[str] = [item for item in angles.columns]
         f.write(f'[ angles ]\n')
         f.write(f'; {" ".join(header)}\n')
-        angles.to_csv(f, header=None, sep=' ', index=False)
+        angles.to_csv(f, header=None, sep='\t', index=False)
         f.write(f'\n')
 
     def write_dihedrals(self,
@@ -188,7 +188,7 @@ class WriteItp:
         header: list[str] = [item for item in dihedrals.columns]
         f.write(f'[ dihedrals ]\n')
         f.write(f'; {" ".join(header)}\n')
-        dihedrals.to_csv(f, header=None, sep=' ', index=False)
+        dihedrals.to_csv(f, header=None, sep='\t', index=False)
         f.write(f'\n')
 
     def write_pairs(self,
