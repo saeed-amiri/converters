@@ -203,7 +203,7 @@ class Pdb:
                                       Atoms_df['mol'],
                                       Atoms_df['atom_id'])
         pdb_df['atom_name'] = names
-        empty_data: list[str] = [' ' for _ in names]  # For empty 
+        empty_data: list[str] = [' ' for _ in names]  # For empty
         pdb_df['element'] = elements
         pdb_df['residue_name'] = residues
         pdb_df['records'] = records
