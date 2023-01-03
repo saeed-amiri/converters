@@ -154,6 +154,7 @@ class Itp:
                    'theta',  # The angle between bonds
                    'cth',  # Strength of the bonds
                    ' ',  # Comment: name of the angle
+                   'angle_name',  # Comment: name of the angle
                    'resname',  # Name of the residue which atoms belonged to
                    'resnr',  # Nr. of the residue which atoms belonged to
                    ]
@@ -165,8 +166,9 @@ class Itp:
         df['funct'] = [1 for _ in df['ai']]
         # df['theta'] = [' ' for _ in df['ai']]
         # df['cth'] = [' ' for _ in df['ai']]
+        df[' '] = [';' for _ in df['ai'] ]
         try:
-            df[' '] = '; ' + lmp.Angles_df['name']
+            df['angle_name'] = lmp.Angles_df['name']
         except KeyError:
             df.drop(columns=[' '], inplace=True)
             print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
