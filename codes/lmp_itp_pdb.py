@@ -130,8 +130,31 @@ class WriteItp:
         """write section of the itp file"""
         header: list[str] = [item for item in atoms.columns]
         f.write(f'[ atoms ]\n')
-        f.write(f'; {" ".join(header)}\n')
-        atoms.to_csv(f, header=None, sep=' ', index=False)
+        f.write(f'; {"  ".join(header)}\n')
+        for row in atoms.iterrows():
+            line: list[str]  # line with length of 85 spaces to fix output
+            line = [' '*85]
+            line[0:7] = f'{row[1]["atomnr"]:>7d}'
+            line[7:11] = f'{" "*2}'
+            line[11:19] = f'{row[1]["atomtype"]:>7s}'
+            line[19:21] = f'{" "*2}'
+            line[21:26] = f'{row[1]["resnr"]:5d}'
+            line[26:28] = f'{" "*2}'
+            line[28:35] = f'{row[1]["resname"]:>7s}'
+            line[35:37] = f'{" "*2}'
+            line[37:45] = f'{row[1]["atomname"]:>8s}'
+            line[45:47] = f'{" "*2}'
+            line[47:56] = f'{row[1]["chargegrp"]:>9d}'
+            line[56:58] = f'{" "*2}'
+            line[58:64] = f'{row[1]["charge"]:>6.3f}'
+            line[64:66] = f'{" "*2}'
+            line[66:73] = f'{row[1]["mass"]:>6.3f}'
+            line[73:74] = f'{" "*1}'
+            line[75:77] = f'{row[1][" "]:>2s}'
+            line[77:78] = f'{" "*1}'
+            line[78:] = f'{row[1]["element"]:>}'
+            f.write(''.join(line))
+            f.write(f'\n')
         f.write(f'; Total charge : {atoms["charge"].sum()}\n')
         f.write(f'\n')
 
