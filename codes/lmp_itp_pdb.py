@@ -100,38 +100,46 @@ class WriteItp:
                   itp: lmpitp.Itp,  # Data frames restructerd from LAMMPS
                   fname: str  # Name of the input data file
                   ) -> None:
-        fout: str  # Name of the input file
-        fout = rename_file(fname, extension='itp')
-        print(f'{bcolors.OKBLUE}{self.__class__.__name__}:\n'
-              f'\tITP file is `{fout}`{bcolors.ENDC}\n')
-        with open(fout, 'w') as f:
-            f.write(f'; input pdb SMILES:\n')
-            f.write(f'\n')
-            self.write_molecule(f)
-            self.write_atoms(f, itp.atoms)
-            self.write_bonds(f, itp.bonds)
-            self.write_angles(f, itp.angles)
-            self.write_dihedrals(f, itp.dihedrals)
-            self.write_pairs(f)
+        moles: list[str]  # Names of each mol to make files
+        moles = set(itp.atoms['resname'])
+        for mol in moles:
+            fout = rename_file(mol, 'itp')
+            fout: str  # Name of the input file
+            # fout = rename_file(fname, extension='itp')
+            print(f'{bcolors.OKBLUE}{self.__class__.__name__}:\n'
+                  f'\tITP file is `{fout}`{bcolors.ENDC}\n')
+            with open(fout, 'w') as f:
+                f.write(f'; input pdb SMILES:\n')
+                f.write(f'\n')
+                self.write_molecule(f, mol)
+                self.write_atoms(f, itp.atoms, mol)
+                self.write_bonds(f, itp.bonds, mol)
+                self.write_angles(f, itp.angles)
+                self.write_dihedrals(f, itp.dihedrals)
+                self.write_pairs(f)
 
     def write_molecule(self,
-                       f: typing.Any  # The out put file
+                       f: typing.Any,  # The out put file
+                       mol: str  # Name of the molecule to write into file
                        ) -> None:
         """write section of the itp file"""
         f.write(f'[ moleculetype ]\n')
         f.write(f'; Name\t\tnrexcl\n')
-        f.write(f'ITP\t\t3\n')
+        f.write(f'{mol:>6s}\t\t3\n')
         f.write(f'\n')
 
     def write_atoms(self,
                     f: typing.Any,  # The out put file
-                    atoms: pd.DataFrame  # Atoms information
+                    atoms: pd.DataFrame,  # Atoms information
+                    mol: str  # Name of the molecule to write into file
                     ) -> None:
         """write section of the itp file"""
         header: list[str] = [item for item in atoms.columns]
         f.write(f'[ atoms ]\n')
         f.write(f'; {"  ".join(header)}\n')
-        for row in atoms.iterrows():
+        df: pd.DataFrame  # Copy of the df with mol selected info
+        df = atoms[atoms['resname'] == mol]
+        for row in df.iterrows():
             line: list[str]  # line with length of 85 spaces to fix output
             line = [' '*85]
             line[0:7] = f'{row[1]["atomnr"]:>7d}'
@@ -155,18 +163,21 @@ class WriteItp:
             line[78:] = f'{row[1]["element"]:>6s}'
             f.write(''.join(line))
             f.write(f'\n')
-        f.write(f'; Total charge : {atoms["charge"].sum()}\n')
+        f.write(f'; Total charge : {df["charge"].sum()}\n')
         f.write(f'\n')
 
     def write_bonds(self,
                     f: typing.Any,  # The out put file
-                    bonds: pd.DataFrame  # bonds information
+                    bonds: pd.DataFrame,  # bonds information
+                    mol: str  # Name of the molecule to write into file
                     ) -> None:
         """write section of the itp file"""
+        df: pd.DataFrame  # Copy of the df with mol selected info
+        df = bonds[bonds['resname'] == mol]
         header: list[str] = [item for item in bonds.columns]
         f.write(f'[ bonds ]\n')
         f.write(f'; {" ".join(header)}\n')
-        bonds.to_csv(f, header=None, sep='\t', index=False)
+        df.to_csv(f, header=None, sep='\t', index=False)
         f.write(f'\n')
 
     def write_angles(self,
