@@ -243,7 +243,7 @@ class Pdb:
                                         'mol_id',
                                         'id_name'])
             df: pd.DataFrame = names_id_df[names_id_df['mol_id'] == mol]
-            id_name: list[str] = self.__rename_atoms(df['names'])
+            id_name: list[str] = self.__rename_atoms(df['names'], mol)
             df1['atom_id'] = df['atom_id']
             df1['names'] = df['names']
             df1['mol_id'] = df['mol_id']
@@ -258,6 +258,7 @@ class Pdb:
 
     def __rename_atoms(self,
                        names: list[str],  # Name of the atoms from LAMMPS data
+                       mol: int  # Molecule id
                        ) -> list[str]:
         """rename the atoms based on thier repetetion"""
         # Get the repeated item by counter and rename them
@@ -271,4 +272,8 @@ class Pdb:
                 print(f'{bcolors.WARNING}\tWarning:\n'
                       f'\t\tLenght of item {i}: {name} '
                       f'is longer than 4, consider renaming the atoms\n')
+        if len(names) != len(set(name_id)):
+            exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n\tERROR! '
+                 f'There is similar name in a same molecule! Nr.: {mol}'
+                 f'{bcolors.ENDC}\n')
         return name_id
