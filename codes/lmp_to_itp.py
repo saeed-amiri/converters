@@ -166,7 +166,7 @@ class Itp:
         df['funct'] = [1 for _ in df['ai']]
         # df['theta'] = [' ' for _ in df['ai']]
         # df['cth'] = [' ' for _ in df['ai']]
-        df[' '] = [';' for _ in df['ai'] ]
+        df[' '] = [';' for _ in df['ai']]
         try:
             df['angle_name'] = lmp.Angles_df['name']
         except KeyError:
@@ -292,7 +292,7 @@ class Itp:
                 exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
                      f'\tdihedrals between atoms with diffrents residues '
                      f'type\n{bcolors.ENDC}')
-            
+
             resnr.append(mol_iid)
             resname.append(mol_i)
         return resname, resnr
