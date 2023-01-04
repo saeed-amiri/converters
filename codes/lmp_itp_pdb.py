@@ -146,10 +146,11 @@ class WriteItp:
         df1: pd.DataFrame  # Copy of the df with mol_id selected info
         df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
         self.__atoms_one: dict[int, int]  # Atoms index from one
-        self.__atoms_one = {nr: nr-np.min(df1['atomnr']) + 1 for nr in df1['atomnr']}
+        self.__atoms_one = {nr: nr-np.min(df1['atomnr']) + 1
+                            for nr in df1['atomnr']}
         atomnr: list[int] = [self.__atoms_one[item] for item in df1['atomnr']]
         resnr: list[int] = [1 for _ in self.__atoms_one]
-        df = pd.DataFrame({'atomnr':atomnr,  
+        df = pd.DataFrame({'atomnr': atomnr,
                            'atomtype': df1['atomtype'],
                            'resnr': resnr,
                            'resname': df1['resname'],
@@ -208,9 +209,8 @@ class WriteItp:
                                'funct': df1['funct'],
                                'r': df1['r'],
                                'k': df1['k'],
-                                ' ': df1[' '],
-                                '  ': df1['  ']
-                              })
+                               ' ': df1[' '],
+                               '  ': df1['  ']})
             header: list[str] = [item for item in df.columns]
             f.write(f'[ bonds ]\n')
             f.write(f'; {" ".join(header)}\n')
@@ -240,8 +240,7 @@ class WriteItp:
                                'theta': df1['theta'],
                                'cth': df1['cth'],
                                ' ': df1[' '],
-                               'angle_name': df1['angle_name'],
-                             })
+                               'angle_name': df1['angle_name']})
             header: list[str] = [item for item in df.columns]
             f.write(f'[ angles ]\n')
             f.write(f'; {" ".join(header)}\n')
