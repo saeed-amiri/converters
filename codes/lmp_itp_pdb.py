@@ -151,7 +151,7 @@ class WriteItp:
         resnr: list[int] = [1 for _ in self.__atoms_one]
         df = pd.DataFrame({'atomnr':atomnr,  
                            'atomtype': df1['atomtype'],
-                           'resnr': df1['resnr'],
+                           'resnr': resnr,
                            'resname': df1['resname'],
                            'atomname': df1['atomname'],
                            'chargegrp': df1['chargegrp'],
