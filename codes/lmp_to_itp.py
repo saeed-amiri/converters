@@ -137,8 +137,8 @@ class Itp:
             if mol_i != mol_j or mol_iid != mol_jid:
                 if not flag_war:
                     print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                         f'\tBond between atoms with diffrents residues '
-                         f'type\n{bcolors.ENDC}')
+                          f'\tBond between atoms with diffrents residues '
+                          f'type\n{bcolors.ENDC}')
                     flag_war = True
             resnr.append(mol_iid)
             resname.append(mol_i)
@@ -210,8 +210,8 @@ class Itp:
             if len(check_list_name) != 1 or len(check_list_id) != 1:
                 if not flag_war:
                     print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                         f'\tangles between atoms with diffrents residues '
-                         f'type\n{bcolors.ENDC}')
+                          f'\tangles between atoms with diffrents residues '
+                          f'type\n{bcolors.ENDC}')
                 flag_war = True
             resnr.append(mol_iid)
             resname.append(mol_i)
@@ -297,8 +297,8 @@ class Itp:
             if len(check_list_name) != 1 or len(check_list_id) != 1:
                 if not flag_war:
                     print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                         f'\tdihedrals between atoms with diffrents residues '
-                         f'type\n{bcolors.ENDC}')
+                          f'\tdihedrals between atoms with diffrents residues '
+                          f'type\n{bcolors.ENDC}')
                     flag_war = True
 
             resnr.append(mol_iid)
