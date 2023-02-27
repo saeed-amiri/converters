@@ -135,7 +135,7 @@ class Itp:
                            lmp.Atoms_df['atom_id'] == aj]['mol'][aj]
 
             if mol_i != mol_j or mol_iid != mol_jid:
-                exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                      f'\tBond between atoms with diffrents residues '
                      f'type\n{bcolors.ENDC}')
             resnr.append(mol_iid)
@@ -205,7 +205,7 @@ class Itp:
             check_list_name = set([mol_i, mol_j, mol_k])
             check_list_id = set([mol_iid, mol_jid, mol_kid])
             if len(check_list_name) != 1 or len(check_list_id) != 1:
-                exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                      f'\tangles between atoms with diffrents residues '
                      f'type\n{bcolors.ENDC}')
             resnr.append(mol_iid)
@@ -289,7 +289,7 @@ class Itp:
             check_list_name = set([mol_i, mol_j, mol_k, mol_h])
             check_list_id = set([mol_iid, mol_jid, mol_kid, mol_hid])
             if len(check_list_name) != 1 or len(check_list_id) != 1:
-                exit(f'{bcolors.FAIL}{self.__class__.__name__}:\n'
+                print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
                      f'\tdihedrals between atoms with diffrents residues '
                      f'type\n{bcolors.ENDC}')
 
