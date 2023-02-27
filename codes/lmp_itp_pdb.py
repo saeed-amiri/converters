@@ -197,21 +197,25 @@ class WriteItp:
                     ) -> None:
         """write section of the itp file"""
         df_raw: pd.DataFrame  # Copy of the df with mol selected info
-        df_raw = bonds[bonds['resname'] == mol]
-
+        df_raw = bonds.copy()
         resides_ids = set(df_raw['resnr'])
+        df_list: list[pd.DataFrame] = []  # For keeping all bonds
         if resides_ids:
-            df1: pd.DataFrame  # Copy of the df with mol_id selected info
-            df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
-            ai = [self.__atoms_one[item] for item in df1['ai']]
-            aj = [self.__atoms_one[item] for item in df1['aj']]
-            df = pd.DataFrame({'ai': ai,
-                               'aj': aj,
-                               'funct': df1['funct'],
-                               'r': df1['r'],
-                               'k': df1['k'],
-                               ' ': df1[' '],
-                               '  ': df1['  ']})
+            for id in resides_ids:
+                df1: pd.DataFrame  # Copy of the df with mol_id selected info
+                df1 = df_raw[df_raw['resnr'] == id]
+                ai = [self.__atoms_one[item] for item in df1['ai']]
+                aj = [self.__atoms_one[item] for item in df1['aj']]
+                df_i = pd.DataFrame({'ai': ai,
+                                     'aj': aj,
+                                     'funct': df1['funct'],
+                                     'r': df1['r'],
+                                     'k': df1['k'],
+                                     ' ': df1[' '],
+                                     '  ': df1['  ']})
+                df_list.append(df_i)
+                del df_i
+            df = pd.concat(df_list)
             header: list[str] = [item for item in df.columns]
             f.write(f'[ bonds ]\n')
             f.write(f'; {" ".join(header)}\n')
