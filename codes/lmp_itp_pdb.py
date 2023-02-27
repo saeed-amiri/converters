@@ -264,29 +264,33 @@ class WriteItp:
                         ) -> None:
         """write section of the itp file"""
         df_raw: pd.DataFrame  # Copy of the df with mol selected info
-        df_raw = dihedrals[dihedrals['resname'] == mol]
-
+        df_raw = dihedrals.copy()
         resides_ids = set(df_raw['resnr'])
+        df_list: list[pd.DataFrame] = []  # Keeping all the angles
         if resides_ids:
-            df1: pd.DataFrame  # Copy of the df with mol_id selected info
-            df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
-            ai = [self.__atoms_one[item] for item in df1['ai']]
-            aj = [self.__atoms_one[item] for item in df1['aj']]
-            ak = [self.__atoms_one[item] for item in df1['ak']]
-            ah = [self.__atoms_one[item] for item in df1['ah']]
-            df = pd.DataFrame({'ai': ai,
-                               'aj': aj,
-                               'ak': ak,
-                               'ah': ah,
-                               'funct': df1['funct'],
-                               'C0': df1['C0'],
-                               'C1': df1['C1'],
-                               'C2': df1['C2'],
-                               'C3': df1['C3'],
-                               'C4': df1['C4'],
-                               ' ': df1[' '],
-                               'dihedral_name': df1['dihedral_name']
-                               })
+            for id in resides_ids:
+                df1: pd.DataFrame  # Copy of the df with mol_id selected info
+                df1 = df_raw[df_raw['resnr'] == id]
+                ai = [self.__atoms_one[item] for item in df1['ai']]
+                aj = [self.__atoms_one[item] for item in df1['aj']]
+                ak = [self.__atoms_one[item] for item in df1['ak']]
+                ah = [self.__atoms_one[item] for item in df1['ah']]
+                df_i = pd.DataFrame({'ai': ai,
+                                     'aj': aj,
+                                     'ak': ak,
+                                     'ah': ah,
+                                     'funct': df1['funct'],
+                                     'C0': df1['C0'],
+                                     'C1': df1['C1'],
+                                     'C2': df1['C2'],
+                                     'C3': df1['C3'],
+                                     'C4': df1['C4'],
+                                     ' ': df1[' '],
+                                     'dihedral_name': df1['dihedral_name']
+                                     })
+                df_list.append(df_i)
+                del df_i
+            df: pd.DataFrame = pd.concat(df_list)
             header: list[str] = [item for item in df.columns]
             f.write(f'[ dihedrals ]\n')
             f.write(f'; {" ".join(header)}\n')
