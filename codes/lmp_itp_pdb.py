@@ -226,14 +226,12 @@ class WriteItp:
         """write section of the itp file"""
         df_raw: pd.DataFrame  # Copy of the df with mol selected info
         df_raw = angles[angles['resname'] == mol]
-        print(self.__atoms_one)
         resides_ids = set(df_raw['resnr'])
         if resides_ids:
             df1: pd.DataFrame  # Copy of the df with mol_id selected info
             df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
             ai = [self.__atoms_one[item] for item in df1['ai']]
             aj = [self.__atoms_one[item] for item in df1['aj']]
-            print(df1)
             ak = [self.__atoms_one[item] for item in df1['ak']]
 
             df = pd.DataFrame({'ai': ai,
