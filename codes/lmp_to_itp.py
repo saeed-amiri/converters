@@ -120,6 +120,7 @@ class Itp:
         """return residues name and index"""
         resname: list[str] = []  # Name of the residues
         resnr: list[int] = []  # index of the residues
+        flag_war: bool = False  # To print the warning
         for ai, aj in zip(df['ai'], df['aj']):
             ai_type: int = lmp.Atoms_df.loc[
                            lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
@@ -133,11 +134,12 @@ class Itp:
                            lmp.Atoms_df['atom_id'] == ai]['mol'][ai]
             mol_jid: int = lmp.Atoms_df[
                            lmp.Atoms_df['atom_id'] == aj]['mol'][aj]
-
             if mol_i != mol_j or mol_iid != mol_jid:
-                print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                     f'\tBond between atoms with diffrents residues '
-                     f'type\n{bcolors.ENDC}')
+                if not flag_war:
+                    print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
+                         f'\tBond between atoms with diffrents residues '
+                         f'type\n{bcolors.ENDC}')
+                    flag_war = True
             resnr.append(mol_iid)
             resname.append(mol_i)
         return resname, resnr
@@ -183,6 +185,7 @@ class Itp:
         """return residues name and index"""
         resname: list[str] = []  # Name of the residues
         resnr: list[int] = []  # index of the residues
+        flag_war: bool = False  # To print the warning
         for ai, aj, ak in zip(df['ai'], df['aj'], df['ak']):
             ai_type: int = lmp.Atoms_df.loc[
                            lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
@@ -205,9 +208,11 @@ class Itp:
             check_list_name = set([mol_i, mol_j, mol_k])
             check_list_id = set([mol_iid, mol_jid, mol_kid])
             if len(check_list_name) != 1 or len(check_list_id) != 1:
-                print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                     f'\tangles between atoms with diffrents residues '
-                     f'type\n{bcolors.ENDC}')
+                if not flag_war:
+                    print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
+                         f'\tangles between atoms with diffrents residues '
+                         f'type\n{bcolors.ENDC}')
+                flag_war = True
             resnr.append(mol_iid)
             resname.append(mol_i)
         return resname, resnr
@@ -261,6 +266,7 @@ class Itp:
         """return residues name and index"""
         resname: list[str] = []  # Name of the residues
         resnr: list[int] = []  # index of the residues
+        flag_war: bool = False  # To print the warning
         for ai, aj, ak, ah in zip(df['ai'], df['aj'], df['ak'], df['ah']):
             ai_type: int = lmp.Atoms_df.loc[
                            lmp.Atoms_df['atom_id'] == ai]['typ'][ai]
@@ -289,9 +295,11 @@ class Itp:
             check_list_name = set([mol_i, mol_j, mol_k, mol_h])
             check_list_id = set([mol_iid, mol_jid, mol_kid, mol_hid])
             if len(check_list_name) != 1 or len(check_list_id) != 1:
-                print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
-                     f'\tdihedrals between atoms with diffrents residues '
-                     f'type\n{bcolors.ENDC}')
+                if not flag_war:
+                    print(f'{bcolors.WARNING}{self.__class__.__name__}:\n'
+                         f'\tdihedrals between atoms with diffrents residues '
+                         f'type\n{bcolors.ENDC}')
+                    flag_war = True
 
             resnr.append(mol_iid)
             resname.append(mol_i)
