@@ -140,11 +140,12 @@ class WriteItp:
         f.write(f'; {"  ".join(header)}\n')
 
         df_raw: pd.DataFrame  # Copy of the df with mol selected info
-        df_raw = atoms[atoms['resname'] == mol]
-
+        # df_raw = atoms[atoms['resname'] == mol]
+        df_raw = atoms.copy()
         resides_ids = set(df_raw['resnr'])
         df1: pd.DataFrame  # Copy of the df with mol_id selected info
         df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
+        df1 = atoms.copy()
         self.__atoms_one: dict[int, int]  # Atoms index from one
         self.__atoms_one = {nr: nr-np.min(df1['atomnr']) + 1
                             for nr in df1['atomnr']}
@@ -225,14 +226,16 @@ class WriteItp:
         """write section of the itp file"""
         df_raw: pd.DataFrame  # Copy of the df with mol selected info
         df_raw = angles[angles['resname'] == mol]
-
+        print(self.__atoms_one)
         resides_ids = set(df_raw['resnr'])
         if resides_ids:
             df1: pd.DataFrame  # Copy of the df with mol_id selected info
             df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
             ai = [self.__atoms_one[item] for item in df1['ai']]
             aj = [self.__atoms_one[item] for item in df1['aj']]
+            print(df1)
             ak = [self.__atoms_one[item] for item in df1['ak']]
+
             df = pd.DataFrame({'ai': ai,
                                'aj': aj,
                                'ak': ak,
