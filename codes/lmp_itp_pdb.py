@@ -134,26 +134,25 @@ class WriteItp:
                     atoms: pd.DataFrame,  # Atoms information
                     mol: str  # Name of the molecule to write into file
                     ) -> None:
-        """write section of the itp file"""
-        header: list[str] = [item for item in atoms.columns]
+        """write atom section of the itp file"""
+        header: list[str] = [item for item in atoms.columns]  # Header of atoms
         f.write(f'[ atoms ]\n')
         f.write(f'; {"  ".join(header)}\n')
-
-        df_raw: pd.DataFrame  # Copy of the df with mol selected info
+        # df_raw: pd.DataFrame  # Copy of the df with mol selected info
         # df_raw = atoms[atoms['resname'] == mol]
-        df_raw = atoms.copy()
-        resides_ids = set(df_raw['resnr'])
+        # df_raw = atoms.copy()
+        # resides_ids = set(df_raw['resnr'])
         df1: pd.DataFrame  # Copy of the df with mol_id selected info
-        df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
+        # df1 = df_raw[df_raw['resnr'] == list(resides_ids)[0]]
         df1 = atoms.copy()
         self.__atoms_one: dict[int, int]  # Atoms index from one
         self.__atoms_one = {nr: nr-np.min(df1['atomnr']) + 1
                             for nr in df1['atomnr']}
         atomnr: list[int] = [self.__atoms_one[item] for item in df1['atomnr']]
-        resnr: list[int] = [1 for _ in self.__atoms_one]
+        # resnr: list[int] = [1 for _ in self.__atoms_one]
         df = pd.DataFrame({'atomnr': atomnr,
                            'atomtype': df1['atomtype'],
-                           'resnr': resnr,
+                           'resnr': df1['resnr'],
                            'resname': df1['resname'],
                            'atomname': df1['atomname'],
                            'chargegrp': df1['chargegrp'],
@@ -162,7 +161,7 @@ class WriteItp:
                            ' ': df1[' '],
                            'element': df1['element']
                            })
-        resides_ids: set[int]  # all of the residues ids
+        # resides_ids: set[int]  # all of the residues ids
         for row in df.iterrows():
             line: list[str]  # line with length of 85 spaces to fix output
             line = [' '*85]
